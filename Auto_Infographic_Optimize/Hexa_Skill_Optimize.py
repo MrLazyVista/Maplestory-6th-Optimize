@@ -281,7 +281,7 @@ else:
     B_4_boost = Fill_Boost(B_4_boost,"B",B_4_Aux ,Bmod_4 ,0  ,len(B_cost))
     C_1_boost = Fill_Boost(C_1_boost,"C",C_1_Aux ,C_1    ,0  ,len(C_cost))
 
-print(Amod_1,Bmod_1,Bmod_2,Bmod_3,Bmod_4,C_1)
+# print(Amod_1,Bmod_1,Bmod_2,Bmod_3,Bmod_4,C_1)
 
 while A_1_Current != 30 or B_1_Current != 30 or B_2_Current != 30 or B_3_Current != 30 or B_4_Current != 30 or C_1_Current != 30:
     A_1_Delta_boost = ListSubtractConstant(A_1_boost,A_1_Current)
