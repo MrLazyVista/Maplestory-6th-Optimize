@@ -7,7 +7,7 @@ import numpy
 # Damage is Boss% + Damage%,
 # IED is what you see on character sheet
 # if you dont know what Boss_Def is this calc is way too advanced for you
-# Use fractional values 98% = 0.98, 612% = 6.12, etc etc
+# Use decimal values 98% = 0.98, 612% = 6.12, etc etc
 Damage  = 6.00
 IED     = 0.94
 Boss_Def= 3.80
@@ -17,7 +17,7 @@ Boss_Def= 3.80
 # B_1 means your first 5th job skill (Spear for ex),B_2 for the second 5th job skill (Radiant Evil)
 # B_3 for third (Cyclone), etc etc
 # C_1 represents your Origin Skill, and how big you expect it to be (BA percentage wise)
-# Input an estimated BA contribution for level one if Origin is currently unleveled
+# Input an estimated BA contribution for level one if Origin is currently nonexistant
 A_1     = 0.25
 B_1     = 0.25
 B_2     = 0.2
@@ -50,7 +50,6 @@ def Fill_Boost(List,ID,Aux,Val,Start,End):
         if   ID == "A":
             List[i]     = ((240+5*(i+1))/225 * Aux - 1) * Val
         elif ID == "B":
-            Aux         = 1
             if (i+1) < 10:
                 List[i] = round((0.11 + i*0.01) * Aux * Val,sig_fig)
             elif (i+1) < 20:
@@ -63,17 +62,17 @@ def Fill_Boost(List,ID,Aux,Val,Start,End):
             if i == 0:
                 List[i] = C_1
             elif (i+1) < 10:
-                Aux     = 1
-                List[i] = C_1 + round((i) * Aux * Val/30,sig_fig)
+                CAux     = 1
+                List[i] = C_1 + round((i) * Aux * CAux * Val/30,sig_fig)
             elif (i+1) < 20:
-                Aux     = (1-Boss_Def*(1-IED)*(1-.2))/(1-Boss_Def*(1-IED))
-                List[i] = C_1 + round((i) * Aux * Val/30,sig_fig)
+                CAux     = (1-Boss_Def*(1-IED)*(1-.2))/(1-Boss_Def*(1-IED))
+                List[i] = C_1 + round((i) * Aux * CAux  * Val/30,sig_fig)
             elif (i+1) < 30:
-                Aux     = (1-Boss_Def*(1-IED)*(1-.2))/(1-Boss_Def*(1-IED)) * (1 + Damage + .2) / (1 + Damage)
-                List[i] = C_1 + round((i) * Aux * Val/30,sig_fig)
+                CAux     = (1-Boss_Def*(1-IED)*(1-.2))/(1-Boss_Def*(1-IED)) * (1 + Damage + .2) / (1 + Damage)
+                List[i] = C_1 + round((i) * Aux * CAux  * Val/30,sig_fig)
             elif (i+1) == 30:
-                Aux     = (1-Boss_Def*(1-IED)*(1-.2)*(1-0.3))/(1-Boss_Def*(1-IED)) * (1 + Damage + .2 + .3) / (1 + Damage)
-                List[i] = C_1 + round((i) * Aux * Val/30,sig_fig)
+                CAux     = (1-Boss_Def*(1-IED)*(1-.2)*(1-0.3))/(1-Boss_Def*(1-IED)) * (1 + Damage + .2 + .3) / (1 + Damage)
+                List[i] = C_1 + round((i) * Aux * CAux  * Val/30,sig_fig)
     return List
 
 # Cost to Reach a certain level
