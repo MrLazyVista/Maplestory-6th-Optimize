@@ -270,9 +270,9 @@ else:
     
     Amod_1  = Revert_Amod_1 * ( 1 + Delta_T )
     Bmod_1  = Revert_Bmod_1 * ( 1 + Delta_T )
-    Bmod_2  = Revert_Bmod_1 * ( 1 + Delta_T )
-    Bmod_3  = Revert_Bmod_1 * ( 1 + Delta_T )
-    Bmod_4  = Revert_Bmod_1 * ( 1 + Delta_T )
+    Bmod_2  = Revert_Bmod_2 * ( 1 + Delta_T )
+    Bmod_3  = Revert_Bmod_3 * ( 1 + Delta_T )
+    Bmod_4  = Revert_Bmod_4 * ( 1 + Delta_T )
     C_1     = Revert_C_1 * ( 1 + Delta_T )
     
     A_1_boost = Fill_Boost(A_1_boost,"A",A_1_Aux ,Amod_1 ,0  ,len(A_cost))
@@ -282,6 +282,8 @@ else:
     B_4_boost = Fill_Boost(B_4_boost,"B",B_4_Aux ,Bmod_4 ,0  ,len(B_cost))
     C_1_boost = Fill_Boost(C_1_boost,"C",C_1_Aux ,C_1    ,0  ,len(C_cost))
 
+print(Amod_1,Bmod_1,Bmod_2,Bmod_3,Bmod_4,C_1)
+
 while A_1_Current != 30 or B_1_Current != 30 or B_2_Current != 30 or B_3_Current != 30 or B_4_Current != 30 or C_1_Current != 30:
     A_1_Delta_boost = ListSubtractConstant(A_1_boost,A_1_Current)
     B_1_Delta_boost = ListSubtractConstant(B_1_boost,B_1_Current)
@@ -290,7 +292,7 @@ while A_1_Current != 30 or B_1_Current != 30 or B_2_Current != 30 or B_3_Current
     B_4_Delta_boost = ListSubtractConstant(B_4_boost,B_4_Current)
     C_1_Delta_boost = ListSubtractConstant(C_1_boost,C_1_Current)
 #    print("Delta_Boost")
-#    ListPrint(C_1_Delta_boost)
+#    ListPrint(B_3_Delta_boost)
 
     A_1_Tcost = Fill_Costs(A_cost,A_1_Current)
     B_1_Tcost = Fill_Costs(B_cost,B_1_Current)
