@@ -34,7 +34,7 @@ B_1_Current   = 0
 B_2_Current   = 0
 B_3_Current   = 0
 B_4_Current   = 0
-C_1_Current   = 1
+C_1_Current   = 0
 
 ## VERY IMPORTANT TO FILL BOXES (DAMAGE, IED, BOSS_DEF, A_1 ..... C_1_Current)
 ## VERY IMPORTANT TO FILL BOXES (DAMAGE, IED, BOSS_DEF, A_1 ..... C_1_Current)
@@ -471,14 +471,14 @@ for i in range(1, len(Final_List)):
 #    ListPrint(Final_List)
 # printing stuff
 
-grid_width, grid_height = 10, 6  # You can adjust these dimensions as needed
+grid_width, grid_height = 10, 4  # You can adjust these dimensions as needed
 spacing = 20
 
 # Calculate the size of each image and the spacing
 image_size = 64  # Adjust the spacing (10) as needed
 
 # Define the canvas size and grid dimensions
-canvas_width, canvas_height = 900, grid_height * (spacing + image_size) + 100
+canvas_width, canvas_height = 900, grid_height * (spacing + image_size) + 150
 
 while len(Compressed_Final_List) >= grid_width * grid_height:
     grid_height += 1
