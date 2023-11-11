@@ -8,6 +8,9 @@ import numpy
 # IED is what you see on character sheet
 # if you dont know what Boss_Def is this calc is way too advanced for you
 # Use decimal values 98% = 0.98, 612% = 6.12, etc etc
+# Fragment based optimization FragBase = True
+# Energy based optimization FragBase = False
+FragBase= False
 Damage  = 6.00
 IED     = 0.94
 Boss_Def= 3.80
@@ -31,7 +34,7 @@ B_1_Current   = 0
 B_2_Current   = 0
 B_3_Current   = 0
 B_4_Current   = 0
-C_1_Current   = 0
+C_1_Current   = 1
 
 ## VERY IMPORTANT TO FILL BOXES (DAMAGE, IED, BOSS_DEF, A_1 ..... C_1_Current)
 ## VERY IMPORTANT TO FILL BOXES (DAMAGE, IED, BOSS_DEF, A_1 ..... C_1_Current)
@@ -119,100 +122,196 @@ def Reverter(Value,Level,List):
     C = Value - B
     return B, C
 
-#Fragment cost stuff
-A_cost =[50
-,15
-,18
-,20
-,23
-,25
-,28
-,30
-,33
-,100
-,40
-,45
-,50
-,55
-,60
-,65
-,70
-,75
-,80
-,175
-,85
-,90
-,95
-,100
-,105
-,110
-,115
-,120
-,125
-,250]
-
-B_cost = [75
-,23
-,27
-,30
-,34
-,38
-,42
-,45
-,49
-,150
-,60
-,68
-,75
-,83
-,90
-,98
-,105
-,113
-,120
-,263
-,126
-,135
-,143
-,150
-,158
-,165
-,173
-,180
-,180
-,375]
-
-# 0.01 is simply just to avoid a divide by 0 error
-C_cost = [0.01
-,30
-,35
-,40
-,45
-,50
-,55
-,60
-,65
-,200
-,80
-,90
-,100
-,110
-,120
-,130
-,140
-,150
-,160
-,350
-,170
-,180
-,190
-,200
-,210
-,220
-,230
-,240
-,250
-,500]
+if FragBase:
+    #Fragment cost stuff
+    A_cost =[50
+    ,15
+    ,18
+    ,20
+    ,23
+    ,25
+    ,28
+    ,30
+    ,33
+    ,100
+    ,40
+    ,45
+    ,50
+    ,55
+    ,60
+    ,65
+    ,70
+    ,75
+    ,80
+    ,175
+    ,85
+    ,90
+    ,95
+    ,100
+    ,105
+    ,110
+    ,115
+    ,120
+    ,125
+    ,250]
+    
+    B_cost = [75
+    ,23
+    ,27
+    ,30
+    ,34
+    ,38
+    ,42
+    ,45
+    ,49
+    ,150
+    ,60
+    ,68
+    ,75
+    ,83
+    ,90
+    ,98
+    ,105
+    ,113
+    ,120
+    ,263
+    ,126
+    ,135
+    ,143
+    ,150
+    ,158
+    ,165
+    ,173
+    ,180
+    ,180
+    ,375]
+    
+    # 0.01 is simply just to avoid a divide by 0 error
+    C_cost = [0.01
+    ,30
+    ,35
+    ,40
+    ,45
+    ,50
+    ,55
+    ,60
+    ,65
+    ,200
+    ,80
+    ,90
+    ,100
+    ,110
+    ,120
+    ,130
+    ,140
+    ,150
+    ,160
+    ,350
+    ,170
+    ,180
+    ,190
+    ,200
+    ,210
+    ,220
+    ,230
+    ,240
+    ,250
+    ,500]
+else:
+    #Energy cost stuff
+    A_cost =[3
+    ,1
+    ,1
+    ,1
+    ,1
+    ,1
+    ,1
+    ,2
+    ,2
+    ,5
+    ,2
+    ,2
+    ,2
+    ,2
+    ,2
+    ,2
+    ,2
+    ,2
+    ,3
+    ,8
+    ,3
+    ,3
+    ,3
+    ,3
+    ,3
+    ,3
+    ,3
+    ,3
+    ,4
+    ,10]
+    
+    B_cost = [4
+    ,1
+    ,1
+    ,1
+    ,2
+    ,2
+    ,2
+    ,3
+    ,3
+    ,8
+    ,3
+    ,3
+    ,3
+    ,3
+    ,3
+    ,3
+    ,3
+    ,3
+    ,4
+    ,12
+    ,4
+    ,4
+    ,4
+    ,4
+    ,4
+    ,5
+    ,5
+    ,5
+    ,6
+    ,15]
+    
+    # 0.01 is simply just to avoid a divide by 0 error
+    C_cost = [0.01
+    ,1
+    ,1
+    ,1
+    ,2
+    ,2
+    ,2
+    ,3
+    ,3
+    ,10
+    ,3
+    ,3
+    ,4
+    ,4
+    ,4
+    ,4
+    ,4
+    ,4
+    ,5
+    ,15
+    ,5
+    ,5
+    ,5
+    ,5
+    ,5
+    ,6
+    ,6
+    ,6
+    ,7
+    ,20]
 
 A_1_boost   = 30 * [0]
 B_1_boost   = 30 * [0]
@@ -339,48 +438,49 @@ while A_1_Current != 30 or B_1_Current != 30 or B_2_Current != 30 or B_3_Current
     MegaList = A_1_BoostOverCost_Filtered + B_1_BoostOverCost_Filtered + B_2_BoostOverCost_Filtered + B_3_BoostOverCost_Filtered + B_4_BoostOverCost_Filtered +  C_1_BoostOverCost_Filtered
     # sort by efficiency
     MegaList = sorted(MegaList, key=lambda x: x[1], reverse = True)
-
-#    print("MegaList")
-#    ListPrint(MegaList)
-    # merge any consecutive patterns A_1 [0,1,2,3,4,5] -> A_1 [5]
-    Compressed_MegaList = [MegaList[0]]  # Initialize with the first element
-    for i in range(1, len(MegaList)):
-        current_element = MegaList[i]
-        previous_element = Compressed_MegaList[-1]
-
-        # Check if the current element's third element is different from the previous one
-        if current_element[2] == previous_element[2]:
-            Compressed_MegaList[-1] = current_element
-        else:
-            Compressed_MegaList.append(current_element)
             
     # The first entry on the compressed list is a single entry, record the level changes, repeat the process, until everything is level 30
-    if Compressed_MegaList[0][2]   == "A_1":
-        A_1_Current = Compressed_MegaList[0][0]
-    elif Compressed_MegaList[0][2] == "B_1":
-        B_1_Current = Compressed_MegaList[0][0]
-    elif Compressed_MegaList[0][2] == "B_2":
-        B_2_Current = Compressed_MegaList[0][0]
-    elif Compressed_MegaList[0][2] == "B_3":
-        B_3_Current = Compressed_MegaList[0][0]
-    elif Compressed_MegaList[0][2] == "B_4":
-        B_4_Current = Compressed_MegaList[0][0]
-    elif Compressed_MegaList[0][2] == "C_1":
-        C_1_Current = Compressed_MegaList[0][0]
+    if MegaList[0][2]   == "A_1":
+        A_1_Current = MegaList[0][0]
+    elif MegaList[0][2] == "B_1":
+        B_1_Current = MegaList[0][0]
+    elif MegaList[0][2] == "B_2":
+        B_2_Current = MegaList[0][0]
+    elif MegaList[0][2] == "B_3":
+        B_3_Current = MegaList[0][0]
+    elif MegaList[0][2] == "B_4":
+        B_4_Current = MegaList[0][0]
+    elif MegaList[0][2] == "C_1":
+        C_1_Current = MegaList[0][0]
         
-    Final_List.append(Compressed_MegaList[0])
+    Final_List.append(MegaList[0])
+    
+     # merge any consecutive patterns A_1 [0,1,2,3,4,5] -> A_1 [5]
+Compressed_Final_List = [Final_List[0]]  # Initialize with the first element
+for i in range(1, len(Final_List)):
+    current_element = Final_List[i]
+    previous_element = Compressed_Final_List[-1]
+ 
+# Check if the current element's third element is different from the previous one
+    if current_element[2] == previous_element[2]:
+        Compressed_Final_List[-1] = current_element
+    else:
+        Compressed_Final_List.append(current_element)
+             
 #    print("next")
 #    ListPrint(Final_List)
 # printing stuff
-# Define the canvas size and grid dimensions
-canvas_width, canvas_height = 900, 600
-grid_width, grid_height = 9, 6  # You can adjust these dimensions as needed
+
+grid_width, grid_height = 10, 6  # You can adjust these dimensions as needed
 spacing = 20
 
 # Calculate the size of each image and the spacing
 image_size = 64  # Adjust the spacing (10) as needed
 
-while len(Final_List) >= grid_width * grid_height:
+# Define the canvas size and grid dimensions
+canvas_width, canvas_height = 900, grid_height * (spacing + image_size) + 100
+
+while len(Compressed_Final_List) >= grid_width * grid_height:
     grid_height += 1
     canvas_height += image_size + spacing
     
@@ -407,7 +507,12 @@ draw = ImageDraw.Draw(canvas)
 font_size = 24
 border_size = 2
 
-title_text = "Dark Knight 6th Job Optimization GMS (Fragment)"
+if FragBase == True:
+    supplementary_title = "(Fragments)"
+else:
+    supplementary_title = "(Energy)"
+    
+title_text = "Dark Knight 6th Job Optimization GMS " + supplementary_title 
 author_text = "By: LazyVista (XseedGames)"
 title_font_size = 36  # Adjust to your desired font size
 author_font_size = 24  # Adjust to your desired font size
@@ -454,20 +559,20 @@ for row in range(grid_height):
         y = row * (image_size + spacing) + y_base_shift # Adjust the spacing (10) as needed
 
         # Paste the "Draw.png" file into the canvas
-        if Final_List[entry][2] == "A_1":
+        if Compressed_Final_List[entry][2] == "A_1":
             canvas.paste(image_A_1.resize((image_size, image_size)), (x, y))
-        elif Final_List[entry][2] == "B_1":
+        elif Compressed_Final_List[entry][2] == "B_1":
             canvas.paste(image_B_1.resize((image_size, image_size)), (x, y))
-        elif Final_List[entry][2] == "B_2":
+        elif Compressed_Final_List[entry][2] == "B_2":
             canvas.paste(image_B_2.resize((image_size, image_size)), (x, y))
-        elif Final_List[entry][2] == "B_3":
+        elif Compressed_Final_List[entry][2] == "B_3":
             canvas.paste(image_B_3.resize((image_size, image_size)), (x, y))
-        elif Final_List[entry][2] == "B_4":
+        elif Compressed_Final_List[entry][2] == "B_4":
             canvas.paste(image_B_4.resize((image_size, image_size)), (x, y))
-        elif Final_List[entry][2] == "C_1":
+        elif Compressed_Final_List[entry][2] == "C_1":
             canvas.paste(image_C_1.resize((image_size, image_size)), (x, y))        
 
-        Result_lv = Final_List[entry][0]
+        Result_lv = Compressed_Final_List[entry][0]
 
         # Calculate the position for the text
         text_position = (x + 15, y + 45)  # Adjust the position as needed
@@ -485,13 +590,13 @@ for row in range(grid_height):
         draw.text(text_position, f"lv. {Result_lv}", fill=(255, 255, 255), font=font)
         
         entry += 1
-        if entry == len(Final_List):
+        if entry == len(Compressed_Final_List):
             break
-    if entry == len(Final_List):
+    if entry == len(Compressed_Final_List):
         break
 
 # Save the final canvas image
-canvas.save("grid_image_with_text_and_border.png")
+canvas.save("Optimized.png")
 
 # Optionally, display the image
 canvas.show()
