@@ -10,7 +10,7 @@ import numpy
 # Use decimal values 98% = 0.98, 612% = 6.12, etc etc
 # Fragment based optimization FragBase = True
 # Energy based optimization FragBase = False
-FragBase= False
+FragBase= True
 Damage  = 6.00
 IED     = 0.94
 Boss_Def= 3.80
@@ -332,6 +332,9 @@ if C_1_Current == 0:
     Bmod_2  = B_2 / ( 1 + C_1)
     Bmod_3  = B_3 / ( 1 + C_1)
     Bmod_4  = B_4 / ( 1 + C_1)
+    # in the original script A_1 is for Gungnir(Dark Knight) which has a IED boost component
+    # The "Aux" values are multipliers that are meant to compensate for these extra features
+    # if there are no auxilary features, just put 1 for the skill
     A_1_Aux         = (1-Boss_Def*(1-IED)*(1-0.4)*(1-.2))/(1-Boss_Def*(1-IED)*(1-0.3)*(1-.2))
     B_1_Aux         = 1
     B_2_Aux         = 1
@@ -469,6 +472,7 @@ for i in range(1, len(Final_List)):
              
 #    print("next")
 #    ListPrint(Final_List)
+ListPrint(Compressed_Final_List)
 # printing stuff
 
 grid_width, grid_height = 10, 4  # You can adjust these dimensions as needed

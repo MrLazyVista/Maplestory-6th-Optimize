@@ -21,12 +21,11 @@ Boss_Def= 3.80
 # B_3 for third (Cyclone), etc etc
 # C_1 represents your Origin Skill, and how big you expect it to be (BA percentage wise)
 # Input an estimated BA contribution for level one if Origin is currently nonexistant
-A_1     = 0.25
-B_1     = 0.25
-B_2     = 0.2
-B_3     = 0.15
-B_4     = 0.08
-C_1     = 0.12
+B_1     = 0.2456
+B_2     = 0.1585
+B_3     = 0.1645
+B_4     = 0.0791
+C_1     = 0.1226
 
 # Current Skill Levels (6th Core)
 A_1_Current   = 0
@@ -34,7 +33,7 @@ B_1_Current   = 0
 B_2_Current   = 0
 B_3_Current   = 0
 B_4_Current   = 0
-C_1_Current   = 1
+C_1_Current   = 0
 
 ## VERY IMPORTANT TO FILL BOXES (DAMAGE, IED, BOSS_DEF, A_1 ..... C_1_Current)
 ## VERY IMPORTANT TO FILL BOXES (DAMAGE, IED, BOSS_DEF, A_1 ..... C_1_Current)
@@ -332,6 +331,9 @@ if C_1_Current == 0:
     Bmod_2  = B_2 / ( 1 + C_1)
     Bmod_3  = B_3 / ( 1 + C_1)
     Bmod_4  = B_4 / ( 1 + C_1)
+    # in the original script A_1 is for Gungnir(Dark Knight) which has a IED boost component
+    # The "Aux" values are multipliers that are meant to compensate for these extra features
+    # if there are no auxilary features, just put 1 for the skill
     A_1_Aux         = (1-Boss_Def*(1-IED)*(1-0.4)*(1-.2))/(1-Boss_Def*(1-IED)*(1-0.3)*(1-.2))
     B_1_Aux         = 1
     B_2_Aux         = 1
@@ -468,17 +470,17 @@ for i in range(1, len(Final_List)):
         Compressed_Final_List.append(current_element)
              
 #    print("next")
-#    ListPrint(Final_List)
+ListPrint(Compressed_Final_List)
 # printing stuff
 
-grid_width, grid_height = 10, 6  # You can adjust these dimensions as needed
+grid_width, grid_height = 10, 4  # You can adjust these dimensions as needed
 spacing = 20
 
 # Calculate the size of each image and the spacing
 image_size = 64  # Adjust the spacing (10) as needed
 
 # Define the canvas size and grid dimensions
-canvas_width, canvas_height = 900, grid_height * (spacing + image_size) + 100
+canvas_width, canvas_height = 900, grid_height * (spacing + image_size) + 150
 
 while len(Compressed_Final_List) >= grid_width * grid_height:
     grid_height += 1
