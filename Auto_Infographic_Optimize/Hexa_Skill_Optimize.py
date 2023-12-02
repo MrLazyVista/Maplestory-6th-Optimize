@@ -4,21 +4,22 @@ import numpy
 ## VERY IMPORTANT TO FILL BOXES (DAMAGE, IED, BOSS_DEF, A_1 ..... C_1_Current)
 ## VERY IMPORTANT TO FILL BOXES (DAMAGE, IED, BOSS_DEF, A_1 ..... C_1_Current)
 ## VERY IMPORTANT TO FILL BOXES (DAMAGE, IED, BOSS_DEF, A_1 ..... C_1_Current)
-# Damage is Boss% + Damage%,
-# IED is what you see on character sheet
-# if you dont know what Boss_Def is this calc is way too advanced for you
 # Use decimal values 98% = 0.98, 612% = 6.12, etc etc
 # Fragment based optimization FragBase = True
 # Energy based optimization FragBase = False
 FragBase    = True
 Hexa_Stat_Include = True
-Damage      = 6.00
-IED         = 0.96
+Damage      = 7.00
+IED         = 0.97
 Hidden_IED  = 0.4
 Boss_Def    = 3.80
 
+# Damage is Boss% + Damage%,
+# IED is what you see on character sheet
+# Hidden IED is IED that doesnt show up on your character page, explorer link, built into skills, debuffs, etc etc
+# if you dont know what Boss_Def is this calc is way too advanced for you
 # These stats (Crit_Dmg, Att_Power, Att_Perc, Stat) are only used if Hexa_Stat_Include is True
-Crit_Dmg  = 1.18
+Crit_Dmg  = 1.48
 Att_Power = 8434
 Att_Perc  = 1.45
 Stat      = 75027
