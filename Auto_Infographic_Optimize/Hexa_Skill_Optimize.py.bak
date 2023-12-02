@@ -21,11 +21,12 @@ Boss_Def= 3.80
 # B_3 for third (Cyclone), etc etc
 # C_1 represents your Origin Skill, and how big you expect it to be (BA percentage wise)
 # Input an estimated BA contribution for level one if Origin is currently nonexistant
-B_1     = 0.2456
-B_2     = 0.1585
-B_3     = 0.1645
-B_4     = 0.0791
-C_1     = 0.1226
+A_1     = 0.25
+B_1     = 0.25
+B_2     = 0.2
+B_3     = 0.15
+B_4     = 0.08
+C_1     = 0.12
 
 # Current Skill Levels (6th Core)
 A_1_Current   = 0
@@ -50,6 +51,7 @@ def Fill_Boost(List,ID,Aux,Val,Start,End):
     sig_fig     = 8
     for i in range(Start,End):
         if   ID == "A":
+            # should be adjusted to match class specific values (although most are gonna be similiar)
             List[i]     = ((240+5*(i+1))/225 * Aux - 1) * Val
         elif ID == "B":
             if (i+1) < 10:

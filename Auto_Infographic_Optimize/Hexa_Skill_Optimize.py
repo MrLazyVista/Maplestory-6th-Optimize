@@ -10,10 +10,18 @@ import numpy
 # Use decimal values 98% = 0.98, 612% = 6.12, etc etc
 # Fragment based optimization FragBase = True
 # Energy based optimization FragBase = False
-FragBase= True
-Damage  = 6.00
-IED     = 0.94
-Boss_Def= 3.80
+FragBase    = True
+Hexa_Stat_Include = True
+Damage      = 6.00
+IED         = 0.96
+Hidden_IED  = 0.4
+Boss_Def    = 3.80
+
+# These stats (Crit_Dmg, Att_Power, Att_Perc, Stat) are only used if Hexa_Stat_Include is True
+Crit_Dmg  = 1.18
+Att_Power = 8434
+Att_Perc  = 1.45
+Stat      = 75027
 
 # Before Origin BA values (use fraction values 0.25, 0.5, 0.1, etc etc)
 # A_1 represents the BA contribute of your 4th job skill that is boosted
@@ -23,10 +31,10 @@ Boss_Def= 3.80
 # Input an estimated BA contribution for level one if Origin is currently nonexistant
 A_1     = 0.25
 B_1     = 0.25
-B_2     = 0.2
+B_2     = 0.20
 B_3     = 0.15
 B_4     = 0.08
-C_1     = 0.12
+C_1     = 0.10
 
 # Current Skill Levels (6th Core)
 A_1_Current   = 0
@@ -51,6 +59,7 @@ def Fill_Boost(List,ID,Aux,Val,Start,End):
     sig_fig     = 8
     for i in range(Start,End):
         if   ID == "A":
+            # should be adjusted to match class specific values (although most are gonna be similiar)
             List[i]     = ((240+5*(i+1))/225 * Aux - 1) * Val
         elif ID == "B":
             if (i+1) < 10:
@@ -121,6 +130,18 @@ def Reverter(Value,Level,List):
     B = Value / A
     C = Value - B
     return B, C
+
+def remove_down_trend(data):
+    result = [data[0]]  # Initialize the result with the first element
+
+    for i in range(1, len(data)):
+        current_count = data[i][0]
+        previous_count = data[i - 1][0]
+
+        if current_count > previous_count:
+            result.append(data[i])
+
+    return result
 
 if FragBase:
     #Fragment cost stuff
@@ -457,8 +478,136 @@ while A_1_Current != 30 or B_1_Current != 30 or B_2_Current != 30 or B_3_Current
         C_1_Current = MegaList[0][0]
         
     Final_List.append(MegaList[0])
-    
-     # merge any consecutive patterns A_1 [0,1,2,3,4,5] -> A_1 [5]
+
+if Hexa_Stat_Include == True:
+    ### Hexa_Stat Stuff
+    Average_Costs = [
+    [323,5],                   # 5 or lower
+    [617,6],                   # At least 6
+    [1148,7],                  # At least 7
+    [3030,8],                  # At least 8
+    [12609,9],                 # At least 9
+    [145126,10]                # At least 10
+    ]
+
+    Stat_Values = [
+    [0.07,'Crit Damage'],   # 0, Crit Damage
+    [0.20,'Boss Damage'],   # 1, Boss Damage
+    [0.20,'Ignore Def'],    # 2, Ignore Enemy Defense
+    [0.15,'Reg Damage'],    # 3, Regular Damage
+    [100,'Attack'],         # 4, Attack
+    [2000,'Stat']]          # 5, Main Stat
+
+    Main_Multi = [0.05, 0.10, 0.15, 0.20, 0.30, 0.40, 0.50, 0.65, 0.80, 1]
+    Alt_Multi  = [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.5]
+
+    Att_Base = Att_Power / (1 + Att_Perc)
+
+    Crit_Main_Mod = (Stat_Values[0][0] + 1 + Crit_Dmg + (0.2 + 0.5)/2) / (1 + Crit_Dmg + (0.2 + 0.5)/2)
+    Boss_Main_Mod = (Stat_Values[1][0] + Damage + 1) / (Damage + 1)
+    IED_Main_Mod  =((Stat_Values[2][0] - 1)*Boss_Def*(1-IED)*(1-Hidden_IED)+1) / (1-Boss_Def*(1-IED)*(1-Hidden_IED))
+    Dmg_Main_Mod  = (Stat_Values[3][0] + Damage + 1) / (Damage + 1)
+    Att_Main_Mod  = (Stat_Values[4][0] + Att_Base) / Att_Base
+    Stat_Main_Mod = (Stat_Values[5][0] + Stat) / Stat
+
+    Gains = [
+    [Crit_Main_Mod , Stat_Values[0][1]], 
+    [Boss_Main_Mod , Stat_Values[1][1]], 
+    [IED_Main_Mod  , Stat_Values[2][1]], 
+    [Dmg_Main_Mod  , Stat_Values[3][1]], 
+    [Att_Main_Mod  , Stat_Values[4][1]], 
+    [Stat_Main_Mod , Stat_Values[5][1]]]
+
+    print("Order of priority")
+    Gains = sorted(Gains, key=lambda x: x[0], reverse = True)
+    for i in range(len(Gains)):
+        print(Gains[i])
+
+    print("")
+
+    Best_Value_Main = []
+    Best_Value_Alt_0 = []
+    Best_Value_Alt_1 = []
+    Damage_Over_Cost = []
+
+    for i in range(len(Main_Multi)):
+        Multi_mod    = Main_Multi[i]
+        Crit_Main_Mod = (Stat_Values[0][0]*Multi_mod + 1 + Crit_Dmg + (0.2 + 0.5)/2) / (1 + Crit_Dmg + (0.2 + 0.5)/2)
+        Boss_Main_Mod = (Stat_Values[1][0]*Multi_mod + Damage + 1) / (Damage + 1)
+        IED_Main_Mod  =((Stat_Values[2][0]*Multi_mod - 1)*Boss_Def*(1-IED)*(1-Hidden_IED)+1) / (1-Boss_Def*(1-IED)*(1-Hidden_IED))
+        Dmg_Main_Mod  = (Stat_Values[3][0]*Multi_mod + Damage + 1) / (Damage + 1)
+        Att_Main_Mod  = (Stat_Values[4][0]*Multi_mod + Att_Base) / Att_Base
+        Stat_Main_Mod = (Stat_Values[5][0]*Multi_mod + Stat) / Stat
+
+        Gain_Values = [
+        [Crit_Main_Mod , Stat_Values[0][1]], 
+        [Boss_Main_Mod , Stat_Values[1][1]], 
+        [IED_Main_Mod  , Stat_Values[2][1]], 
+        [Dmg_Main_Mod  , Stat_Values[3][1]], 
+        [Att_Main_Mod  , Stat_Values[4][1]], 
+        [Stat_Main_Mod , Stat_Values[5][1]]]
+
+        Gain_Values = sorted(Gain_Values, key=lambda x: x[0], reverse = True)
+        Gain_Values[0].append(i+1)
+        Best_Value_Main.append(Gain_Values[0])
+
+    for i in range(len(Alt_Multi)):
+        Multi_mod    = Alt_Multi[i]
+        Crit_Alt_Mod = (Stat_Values[0][0]*Multi_mod + 1 + Crit_Dmg + (0.2 + 0.5)/2) / (1 + Crit_Dmg + (0.2 + 0.5)/2)
+        Boss_Alt_Mod = (Stat_Values[1][0]*Multi_mod + Damage + 1) / (Damage + 1)
+        IED_Alt_Mod  =((Stat_Values[2][0]*Multi_mod - 1)*Boss_Def*(1-IED)*(1-Hidden_IED)+1) / (1-Boss_Def*(1-IED)*(1-Hidden_IED))
+        Dmg_Alt_Mod  = (Stat_Values[3][0]*Multi_mod + Damage + 1) / (Damage + 1)
+        Att_Alt_Mod  = (Stat_Values[4][0]*Multi_mod + Att_Base) / Att_Base
+        Stat_Alt_Mod = (Stat_Values[5][0]*Multi_mod + Stat) / Stat
+        
+        Gain_Values = [
+        [Crit_Alt_Mod , Stat_Values[0][1]], 
+        [Boss_Alt_Mod , Stat_Values[1][1]], 
+        [IED_Alt_Mod  , Stat_Values[2][1]], 
+        [Dmg_Alt_Mod  , Stat_Values[3][1]], 
+        [Att_Alt_Mod  , Stat_Values[4][1]], 
+        [Stat_Alt_Mod , Stat_Values[5][1]]]
+
+        Gain_Values = sorted(Gain_Values, key=lambda x: x[0], reverse = True)
+        Gain_Values[1].append(i+1)
+        Best_Value_Alt_0.append(Gain_Values[1])
+        Gain_Values[2].append(i+1)
+        Best_Value_Alt_1.append(Gain_Values[2])
+
+    for i in range(len(Main_Multi)+1):
+        Max = 20
+        if i == 0:
+            Main_Boost = 0
+        else:
+            Main_Boost = Main_Multi[i - 1] * (Gains[0][0]-1)
+        if (Max - i) % 2 == 0:
+            Alt_Level_0 = (Max - i) / 2
+            Alt_Level_1 = (Max - i) / 2
+            Alt_Boost_0 = Alt_Multi[int(Alt_Level_0)-1] * (Gains[1][0]-1)
+            Alt_Boost_1 = Alt_Multi[int(Alt_Level_1)-1] * (Gains[2][0]-1)
+        else:
+            Alt_Level_0 = (Max - i + 1) / 2
+            Alt_Level_1 = (Max - i - 1) / 2    
+            Alt_Boost_0 = Alt_Multi[int(Alt_Level_0)-1] * (Gains[1][0]-1)
+            Alt_Boost_1 = Alt_Multi[int(Alt_Level_1)-1] * (Gains[2][0]-1)
+        Total_Boost = Main_Boost + Alt_Boost_0 + Alt_Boost_1
+        if i < Average_Costs[0][1]:
+            Total_Cost = Average_Costs[0][0]
+        else:
+            Total_Cost = Average_Costs[i - Average_Costs[0][1]][0]
+        Add_To_List = [i,Total_Boost / Total_Cost, "Stat Core"]
+        Damage_Over_Cost.append(Add_To_List)
+
+    DOC_Filtered = sorted(Damage_Over_Cost, key = lambda x: x[1], reverse = True)
+    DOC_Filtered = remove_down_trend(DOC_Filtered)
+
+    DOC_Filtered[0][0] = "Max"
+    Final_List = Final_List + DOC_Filtered
+    Final_List = sorted(Final_List, key=lambda x: x[1], reverse = True)
+###
+
+
+# merge any consecutive patterns A_1 [0,1,2,3,4,5] -> A_1 [5]
 Compressed_Final_List = [Final_List[0]]  # Initialize with the first element
 for i in range(1, len(Final_List)):
     current_element = Final_List[i]
@@ -471,7 +620,6 @@ for i in range(1, len(Final_List)):
         Compressed_Final_List.append(current_element)
              
 #    print("next")
-#    ListPrint(Final_List)
 ListPrint(Compressed_Final_List)
 # printing stuff
 
@@ -482,11 +630,15 @@ spacing = 20
 image_size = 64  # Adjust the spacing (10) as needed
 
 # Define the canvas size and grid dimensions
-canvas_width, canvas_height = 900, grid_height * (spacing + image_size) + 150
+canvas_height = grid_height * (spacing + image_size) + 150
+canvas_width  = 1200
 
 while len(Compressed_Final_List) >= grid_width * grid_height:
     grid_height += 1
     canvas_height += image_size + spacing
+
+if canvas_width < (16 / 9) * canvas_height:
+    canvas_width = round(16 / 9 * canvas_height)
     
 # Load the "Draw.png" file
 image_A_1 = Image.open("A_1.png")
@@ -495,6 +647,7 @@ image_B_2 = Image.open("B_2.png")
 image_B_3 = Image.open("B_3.png")
 image_B_4 = Image.open("B_4.png")
 image_C_1 = Image.open("C_1.png")
+image_Stat= Image.open("Stat.png")
 
 background_image = Image.open("Background.png")
 
@@ -518,11 +671,12 @@ else:
     
 title_text = "Dark Knight 6th Job Optimization GMS " + supplementary_title 
 author_text = "By: LazyVista (XseedGames)"
+priority_text = Gains[0][1] + " / " + Gains[1][1] + " / " + Gains[2][1]
 title_font_size = 36  # Adjust to your desired font size
 author_font_size = 24  # Adjust to your desired font size
 tile_border_size = 2
 
-x_base_shift = 50
+x_base_shift = int(canvas_width / 2) - (image_size + spacing)*int(grid_width / 2)
 y_base_shift = 125
 
 entry = 0
@@ -545,7 +699,7 @@ draw.text(text_position, title_text, fill=(255, 255, 255), font=font)  # Adjust 
 font = ImageFont.truetype("arial.ttf", author_font_size)  # You can change the font family
 text_width, text_height = draw.textsize(author_text, font)
 x = (canvas_width - text_width) // 2
-y = 80  # You can adjust the Y position for the title
+y = 70  # You can adjust the Y position for the title
 text_position = (x, y)
 
 border_color = (0, 0, 0)  # Black border color
@@ -556,6 +710,22 @@ for dx in [-1, 0, 1]:
             draw.text(border_position, author_text, fill=border_color, font=font)
 
 draw.text(text_position, author_text, fill=(255, 255, 255), font=font)  # Adjust the text color as needed
+
+
+font = ImageFont.truetype("arial.ttf", author_font_size)  # You can change the font family
+text_width, text_height = draw.textsize(priority_text, font)
+x = (canvas_width - text_width) // 2
+y = canvas_height - 30  # You can adjust the Y position for the title
+text_position = (x, y)
+
+border_color = (0, 0, 0)  # Black border color
+for dx in [-1, 0, 1]:
+    for dy in [-1, 0, 1]:
+        if dx != 0 or dy != 0:
+            border_position = (text_position[0] + dx * border_size, text_position[1] + dy * border_size)
+            draw.text(border_position, priority_text, fill=border_color, font=font)
+
+draw.text(text_position, priority_text, fill=(255, 255, 255), font=font)  # Adjust the text color as needed
 
 for row in range(grid_height):
     for col in range(grid_width):
@@ -574,8 +744,10 @@ for row in range(grid_height):
         elif Compressed_Final_List[entry][2] == "B_4":
             canvas.paste(image_B_4.resize((image_size, image_size)), (x, y))
         elif Compressed_Final_List[entry][2] == "C_1":
-            canvas.paste(image_C_1.resize((image_size, image_size)), (x, y))        
-
+            canvas.paste(image_C_1.resize((image_size, image_size)), (x, y))
+        elif Compressed_Final_List[entry][2] == "Stat Core":
+            canvas.paste(image_Stat.resize((image_size, image_size)), (x, y))
+            
         Result_lv = Compressed_Final_List[entry][0]
 
         # Calculate the position for the text
@@ -588,11 +760,16 @@ for row in range(grid_height):
             for dy in [-1, 0, 1]:
                 if dx != 0 or dy != 0:
                     border_position = (text_position[0] + dx * border_size, text_position[1] + dy * border_size)
-                    draw.text(border_position, f"lv. {Result_lv}", fill=border_color, font=font)
+                    if Result_lv != "Max":
+                        draw.text(border_position, f"lv. {Result_lv}", fill=border_color, font=font)
+                    else:
+                        draw.text(border_position, f"{Result_lv}", fill=border_color, font=font)
 
         # Draw the text on top of the border
-        draw.text(text_position, f"lv. {Result_lv}", fill=(255, 255, 255), font=font)
-        
+        if Result_lv != "Max":
+            draw.text(text_position, f"lv. {Result_lv}", fill=(255, 255, 255), font=font)
+        else:
+            draw.text(text_position, f"{Result_lv}", fill=(255, 255, 255), font=font)
         entry += 1
         if entry == len(Compressed_Final_List):
             break
