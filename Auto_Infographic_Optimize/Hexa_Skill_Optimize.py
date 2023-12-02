@@ -671,7 +671,8 @@ else:
     
 title_text = "Dark Knight 6th Job Optimization GMS " + supplementary_title 
 author_text = "By: LazyVista (XseedGames)"
-priority_text = Gains[0][1] + " / " + Gains[1][1] + " / " + Gains[2][1]
+if Hexa_Stat_Include == True:
+    priority_text = Gains[0][1] + " / " + Gains[1][1] + " / " + Gains[2][1]
 title_font_size = 36  # Adjust to your desired font size
 author_font_size = 24  # Adjust to your desired font size
 tile_border_size = 2
@@ -712,20 +713,21 @@ for dx in [-1, 0, 1]:
 draw.text(text_position, author_text, fill=(255, 255, 255), font=font)  # Adjust the text color as needed
 
 
-font = ImageFont.truetype("arial.ttf", author_font_size)  # You can change the font family
-text_width, text_height = draw.textsize(priority_text, font)
-x = (canvas_width - text_width) // 2
-y = canvas_height - 30  # You can adjust the Y position for the title
-text_position = (x, y)
+if Hexa_Stat_Include == True:
+    font = ImageFont.truetype("arial.ttf", author_font_size)  # You can change the font family
+    text_width, text_height = draw.textsize(priority_text, font)
+    x = (canvas_width - text_width) // 2
+    y = canvas_height - 30  # You can adjust the Y position for the title
+    text_position = (x, y)
 
-border_color = (0, 0, 0)  # Black border color
-for dx in [-1, 0, 1]:
-    for dy in [-1, 0, 1]:
-        if dx != 0 or dy != 0:
-            border_position = (text_position[0] + dx * border_size, text_position[1] + dy * border_size)
-            draw.text(border_position, priority_text, fill=border_color, font=font)
+    border_color = (0, 0, 0)  # Black border color
+    for dx in [-1, 0, 1]:
+        for dy in [-1, 0, 1]:
+            if dx != 0 or dy != 0:
+                border_position = (text_position[0] + dx * border_size, text_position[1] + dy * border_size)
+                draw.text(border_position, priority_text, fill=border_color, font=font)
 
-draw.text(text_position, priority_text, fill=(255, 255, 255), font=font)  # Adjust the text color as needed
+    draw.text(text_position, priority_text, fill=(255, 255, 255), font=font)  # Adjust the text color as needed
 
 for row in range(grid_height):
     for col in range(grid_width):
