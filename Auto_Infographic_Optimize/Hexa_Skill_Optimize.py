@@ -684,7 +684,8 @@ y_base_shift = 125
 entry = 0
 
 font = ImageFont.truetype("arial.ttf", title_font_size)  # You can change the font family
-text_width, text_height = draw.textsize(title_text, font)
+text_width = draw.textlength(author_text, font)
+text_height = 0
 x = (canvas_width - text_width) // 2
 y = 10  # You can adjust the Y position for the title
 text_position = (x, y)
@@ -699,7 +700,8 @@ for dx in [-1, 0, 1]:
 draw.text(text_position, title_text, fill=(255, 255, 255), font=font)  # Adjust the text color as needed
 
 font = ImageFont.truetype("arial.ttf", author_font_size)  # You can change the font family
-text_width, text_height = draw.textsize(author_text, font)
+text_width = draw.textlength(author_text, font)
+text_height = 0
 x = (canvas_width - text_width) // 2
 y = 70  # You can adjust the Y position for the title
 text_position = (x, y)
@@ -716,7 +718,8 @@ draw.text(text_position, author_text, fill=(255, 255, 255), font=font)  # Adjust
 
 if Hexa_Stat_Include == True:
     font = ImageFont.truetype("arial.ttf", author_font_size)  # You can change the font family
-    text_width, text_height = draw.textsize(priority_text, font)
+    text_width = draw.textlength(author_text, font)
+    text_height = 0
     x = (canvas_width - text_width) // 2
     y = canvas_height - 30  # You can adjust the Y position for the title
     text_position = (x, y)
