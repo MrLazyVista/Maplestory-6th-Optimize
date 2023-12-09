@@ -1,4 +1,5 @@
 from PIL import Image, ImageDraw, ImageFont
+import os
 import numpy
 
 ## VERY IMPORTANT TO FILL BOXES (DAMAGE, IED, BOSS_DEF, A_1 ..... C_1_Current)
@@ -131,18 +132,6 @@ def Reverter(Value,Level,List):
     B = Value / A
     C = Value - B
     return B, C
-
-def remove_down_trend(data):
-    result = [data[0]]  # Initialize the result with the first element
-
-    for i in range(1, len(data)):
-        current_count = data[i][0]
-        previous_count = data[i - 1][0]
-
-        if current_count > previous_count:
-            result.append(data[i])
-
-    return result
 
 if FragBase:
     #Fragment cost stuff
@@ -481,16 +470,6 @@ while A_1_Current != 30 or B_1_Current != 30 or B_2_Current != 30 or B_3_Current
     Final_List.append(MegaList[0])
 
 if Hexa_Stat_Include == True:
-    ### Hexa_Stat Stuff
-    Average_Costs = [
-    [323,5],                   # 5 or lower
-    [617,6],                   # At least 6
-    [1148,7],                  # At least 7
-    [3030,8],                  # At least 8
-    [12609,9],                 # At least 9
-    [145126,10]                # At least 10
-    ]
-
     Stat_Values = [
     [0.07,'Crit Damage'],   # 0, Crit Damage
     [0.20,'Boss Damage'],   # 1, Boss Damage
@@ -499,8 +478,12 @@ if Hexa_Stat_Include == True:
     [100,'Attack'],         # 4, Attack
     [2000,'Stat']]          # 5, Main Stat
 
-    Main_Multi = [0.05, 0.10, 0.15, 0.20, 0.30, 0.40, 0.50, 0.65, 0.80, 1]
-    Alt_Multi  = [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.5]
+    #               0     1     2     3     4     5     6     7     8     9    10
+    Stat_Costs = [10.0, 10.0, 10.0, 20.0, 20.0, 20.0, 20.0, 30.0, 40.0, 50.0, 50.0]
+    Main_Prob  = [0.35, 0.35, 0.35, 0.20, 0.20, 0.20, 0.20, 0.15, 0.10, 0.05, 0.00]
+    #               0     1     2     3     4     5     6     7     8     9     10
+    Main_Multi = [0.00, 0.05, 0.10, 0.15, 0.20, 0.30, 0.40, 0.50, 0.65, 0.80, 1.00]
+    Alt_Multi  = [0.00, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50]
 
     Att_Base = Att_Power / (1 + Att_Perc)
 
@@ -549,7 +532,7 @@ if Hexa_Stat_Include == True:
         [Stat_Main_Mod , Stat_Values[5][1]]]
 
         Gain_Values = sorted(Gain_Values, key=lambda x: x[0], reverse = True)
-        Gain_Values[0].append(i+1)
+        Gain_Values[0].append(i)
         Best_Value_Main.append(Gain_Values[0])
 
     for i in range(len(Alt_Multi)):
@@ -560,7 +543,7 @@ if Hexa_Stat_Include == True:
         Dmg_Alt_Mod  = (Stat_Values[3][0]*Multi_mod + Damage + 1) / (Damage + 1)
         Att_Alt_Mod  = (Stat_Values[4][0]*Multi_mod + Att_Base) / Att_Base
         Stat_Alt_Mod = (Stat_Values[5][0]*Multi_mod + Stat) / Stat
-        
+    
         Gain_Values = [
         [Crit_Alt_Mod , Stat_Values[0][1]], 
         [Boss_Alt_Mod , Stat_Values[1][1]], 
@@ -570,39 +553,67 @@ if Hexa_Stat_Include == True:
         [Stat_Alt_Mod , Stat_Values[5][1]]]
 
         Gain_Values = sorted(Gain_Values, key=lambda x: x[0], reverse = True)
-        Gain_Values[1].append(i+1)
+        Gain_Values[1].append(i)
         Best_Value_Alt_0.append(Gain_Values[1])
-        Gain_Values[2].append(i+1)
+        Gain_Values[2].append(i)
         Best_Value_Alt_1.append(Gain_Values[2])
 
-    for i in range(len(Main_Multi)+1):
-        Max = 20
+    for i in range(len(Main_Multi)):
+        # modulate how much the level up costs
+        Total_Cost = Stat_Costs[i]
+        # quantify the average damage gained by leveling up
+        Main_Delta_Boost = ((Best_Value_Main[i][0] - 1) - (Best_Value_Main[i-1][0] - 1)) * Main_Prob[i]
+        Alt_0_Delta_Boost = ((Best_Value_Alt_0[i][0] - 1) - (Best_Value_Alt_0[i-1][0] - 1)) * (1-Main_Prob[i])/2
+        Alt_1_Delta_Boost = ((Best_Value_Alt_1[i][0] - 1) - (Best_Value_Alt_1[i-1][0] - 1)) * (1-Main_Prob[i])/2
+
         if i == 0:
-            Main_Boost = 0
-        else:
-            Main_Boost = Main_Multi[i - 1] * (Gains[0][0]-1)
-        if (Max - i) % 2 == 0:
-            Alt_Level_0 = (Max - i) / 2
-            Alt_Level_1 = (Max - i) / 2
-            Alt_Boost_0 = Alt_Multi[int(Alt_Level_0)-1] * (Gains[1][0]-1)
-            Alt_Boost_1 = Alt_Multi[int(Alt_Level_1)-1] * (Gains[2][0]-1)
-        else:
-            Alt_Level_0 = (Max - i + 1) / 2
-            Alt_Level_1 = (Max - i - 1) / 2    
-            Alt_Boost_0 = Alt_Multi[int(Alt_Level_0)-1] * (Gains[1][0]-1)
-            Alt_Boost_1 = Alt_Multi[int(Alt_Level_1)-1] * (Gains[2][0]-1)
-        Total_Boost = Main_Boost + Alt_Boost_0 + Alt_Boost_1
-        if i < Average_Costs[0][1]:
-            Total_Cost = Average_Costs[0][0]
-        else:
-            Total_Cost = Average_Costs[i - Average_Costs[0][1]][0]
-        Add_To_List = [i,Total_Boost / Total_Cost, "Stat Core"]
+            Main_Delta_Boost = (Best_Value_Main[i+1][0] - 1) * Main_Prob[i]
+            Alt_0_Delta_Boost = (Best_Value_Alt_0[i+1][0] - 1) * (1-Main_Prob[i])/2
+            Alt_1_Delta_Boost = (Best_Value_Alt_1[i+1][0] - 1) * (1-Main_Prob[i])/2
+        
+        Delta_Boost = Main_Delta_Boost + Alt_0_Delta_Boost + Alt_1_Delta_Boost
+        
+        Add_To_List = [i, Delta_Boost / Total_Cost, "Stat Core"]
         Damage_Over_Cost.append(Add_To_List)
 
-    DOC_Filtered = sorted(Damage_Over_Cost, key = lambda x: x[1], reverse = True)
-    DOC_Filtered = remove_down_trend(DOC_Filtered)
+    DOC_Compressed = []
+    for i in range(len(Damage_Over_Cost)):
+        Damage_Over_Cost[i][1] = round(Damage_Over_Cost[i][1],16)
+        if i > 0:
+            if Damage_Over_Cost[i][1] != Damage_Over_Cost[i-1][1]:
+                DOC_Compressed.append(Damage_Over_Cost[i-1])
 
-    DOC_Filtered[0][0] = "Max"
+
+    DOC_Filtered = []
+    for i in range(len(DOC_Compressed)):
+        if i > 0:
+            if DOC_Compressed[i][1] <= DOC_Compressed[i-1][1]:
+                DOC_Filtered.append(DOC_Compressed[i-1])
+
+    DOC_Compressed = []
+    for i in range(len(Damage_Over_Cost)):
+        Damage_Over_Cost[i][1] = round(Damage_Over_Cost[i][1],16)
+        if i > 0:
+            if Damage_Over_Cost[i][1] != Damage_Over_Cost[i-1][1]:
+                DOC_Compressed.append(Damage_Over_Cost[i-1])
+
+    DOC_Filtered = []
+    DOC_Point_Tracker = []
+    for i in range(len(DOC_Compressed)):
+        if i > 0:
+            if DOC_Compressed[i][1] <= DOC_Compressed[i-1][1]:
+                DOC_Filtered.append(DOC_Compressed[i-1])
+            else:
+                DOC_Point_Tracker.append(i)
+    if DOC_Compressed[-1][1] <= DOC_Filtered[-1][1]:
+        DOC_Filtered.append(DOC_Compressed[i])
+
+    for i in range(len(DOC_Point_Tracker)):
+        DOC_Filtered[DOC_Point_Tracker[i]-1][1] = DOC_Compressed[DOC_Point_Tracker[i]-1][1]
+
+    for i in range(len(DOC_Filtered)):
+        DOC_Filtered[i][0] = "Until " + str(DOC_Filtered[i][0] + 1)
+
     Final_List = Final_List + DOC_Filtered
     Final_List = sorted(Final_List, key=lambda x: x[1], reverse = True)
 ###
@@ -641,14 +652,17 @@ while len(Compressed_Final_List) >= grid_width * grid_height:
 if canvas_width < (16 / 9) * canvas_height:
     canvas_width = round(16 / 9 * canvas_height)
     
-# Load the "Draw.png" file
-image_A_1 = Image.open("A_1.png")
-image_B_1 = Image.open("B_1.png")
-image_B_2 = Image.open("B_2.png")
-image_B_3 = Image.open("B_3.png")
-image_B_4 = Image.open("B_4.png")
-image_C_1 = Image.open("C_1.png")
-image_Stat= Image.open("Stat.png")
+# Get the current working directory
+current_directory = os.getcwd()
+
+# Construct paths for image files
+image_A_1 = Image.open(os.path.join(current_directory, "A_1.png"))
+image_B_1 = Image.open(os.path.join(current_directory, "B_1.png"))
+image_B_2 = Image.open(os.path.join(current_directory, "B_2.png"))
+image_B_3 = Image.open(os.path.join(current_directory, "B_3.png"))
+image_B_4 = Image.open(os.path.join(current_directory, "B_4.png"))
+image_C_1 = Image.open(os.path.join(current_directory, "C_1.png"))
+image_Stat = Image.open(os.path.join(current_directory, "Stat.png"))
 
 background_image = Image.open("Background.png")
 
@@ -673,18 +687,19 @@ else:
 title_text = "Dark Knight 6th Job Optimization GMS " + supplementary_title 
 author_text = "By: LazyVista (XseedGames)"
 if Hexa_Stat_Include == True:
-    priority_text = Gains[0][1] + " / " + Gains[1][1] + " / " + Gains[2][1]
+    priority_text = "No Rerolling --- " + Gains[0][1] + " / " + Gains[1][1] + " / " + Gains[2][1]
 title_font_size = 36  # Adjust to your desired font size
 author_font_size = 24  # Adjust to your desired font size
 tile_border_size = 2
 
-x_base_shift = int(canvas_width / 2) - (image_size + spacing)*int(grid_width / 2)
+x_base_shift = int(canvas_width / 2)  - (image_size + spacing)*int(grid_width / 2)
 y_base_shift = 125
 
 entry = 0
 
+# draw title
 font = ImageFont.truetype("arial.ttf", title_font_size)  # You can change the font family
-text_width = draw.textlength(author_text, font)
+text_width = draw.textlength(title_text, font)
 text_height = 0
 x = (canvas_width - text_width) // 2
 y = 10  # You can adjust the Y position for the title
@@ -699,6 +714,7 @@ for dx in [-1, 0, 1]:
 
 draw.text(text_position, title_text, fill=(255, 255, 255), font=font)  # Adjust the text color as needed
 
+# draw authorship
 font = ImageFont.truetype("arial.ttf", author_font_size)  # You can change the font family
 text_width = draw.textlength(author_text, font)
 text_height = 0
@@ -715,10 +731,10 @@ for dx in [-1, 0, 1]:
 
 draw.text(text_position, author_text, fill=(255, 255, 255), font=font)  # Adjust the text color as needed
 
-
+# draw hexa info
 if Hexa_Stat_Include == True:
     font = ImageFont.truetype("arial.ttf", author_font_size)  # You can change the font family
-    text_width = draw.textlength(author_text, font)
+    text_width = draw.textlength(priority_text, font)
     text_height = 0
     x = (canvas_width - text_width) // 2
     y = canvas_height - 30  # You can adjust the Y position for the title
@@ -757,7 +773,10 @@ for row in range(grid_height):
         Result_lv = Compressed_Final_List[entry][0]
 
         # Calculate the position for the text
-        text_position = (x + 15, y + 45)  # Adjust the position as needed
+        if isinstance(Result_lv, int):
+            text_position = (x + 15, y + 45)  # Adjust the position as needed
+        else:
+            text_position = (x, y + 45)  # Adjust the position as needed
 
         # Create a font and draw the black border
         font = ImageFont.truetype("arial.ttf", font_size)
@@ -766,13 +785,13 @@ for row in range(grid_height):
             for dy in [-1, 0, 1]:
                 if dx != 0 or dy != 0:
                     border_position = (text_position[0] + dx * border_size, text_position[1] + dy * border_size)
-                    if Result_lv != "Max":
+                    if isinstance(Result_lv, int):
                         draw.text(border_position, f"lv. {Result_lv}", fill=border_color, font=font)
                     else:
                         draw.text(border_position, f"{Result_lv}", fill=border_color, font=font)
 
         # Draw the text on top of the border
-        if Result_lv != "Max":
+        if isinstance(Result_lv, int):
             draw.text(text_position, f"lv. {Result_lv}", fill=(255, 255, 255), font=font)
         else:
             draw.text(text_position, f"{Result_lv}", fill=(255, 255, 255), font=font)
