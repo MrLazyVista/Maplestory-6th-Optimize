@@ -614,6 +614,8 @@ if Hexa_Stat_Include == True:
     for i in range(len(DOC_Filtered)):
         DOC_Filtered[i][0] = "Until " + str(DOC_Filtered[i][0] + 1)
 
+    DOC_Filtered[-1][0] = "Max it"
+    
     Final_List = Final_List + DOC_Filtered
     Final_List = sorted(Final_List, key=lambda x: x[1], reverse = True)
 ###
