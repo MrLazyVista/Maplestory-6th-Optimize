@@ -5,29 +5,25 @@ import numpy
 ## VERY IMPORTANT TO FILL BOXES (DAMAGE, IED, BOSS_DEF, A_1 ..... C_1_Current)
 ## VERY IMPORTANT TO FILL BOXES (DAMAGE, IED, BOSS_DEF, A_1 ..... C_1_Current)
 ## VERY IMPORTANT TO FILL BOXES (DAMAGE, IED, BOSS_DEF, A_1 ..... C_1_Current)
-# Use decimal values 98% = 0.98, 612% = 6.12, etc etc
 # Fragment based optimization FragBase = True
 # Energy based optimization FragBase = False
+# Optimize for rerolling Hexa Core = True
 FragBase    = True
 Hexa_Stat_Include = True
+Hexa_Maxed  = True
+# Use decimal values 98% = 0.98, 612% = 6.12, etc etc
+# Damage is Boss% + Damage%,
+# IED is what you see on character sheet
+# Hidden IED is IED that doesnt show up on your character page, explorer link, built into skills, debuffs, etc etc
 Damage      = 7.00
 IED         = 0.97
 Hidden_IED  = 0.4
 Boss_Def    = 3.80
 
-# Damage is Boss% + Damage%,
-# IED is what you see on character sheet
-# Hidden IED is IED that doesnt show up on your character page, explorer link, built into skills, debuffs, etc etc
-# if you dont know what Boss_Def is this calc is way too advanced for you
-# These stats (Crit_Dmg, Att_Power, Att_Perc, Stat) are only used if Hexa_Stat_Include is True
-Crit_Dmg  = 1.48
-Att_Power = 8434
-Att_Perc  = 1.45
-Stat      = 75027
-
 # Before Origin BA values (use fraction values 0.25, 0.5, 0.1, etc etc)
 # A_1 represents the BA contribute of your 4th job skill that is boosted
-# B_1 means your first 5th job skill (Spear for ex),B_2 for the second 5th job skill (Radiant Evil)
+# B_1 means your first 5th job skill (Spear for ex)
+# B_2 for the second 5th job skill (Radiant Evil)
 # B_3 for third (Cyclone), etc etc
 # C_1 represents your Origin Skill, and how big you expect it to be (BA percentage wise)
 # Input an estimated BA contribution for level one if Origin is currently nonexistant
@@ -45,6 +41,17 @@ B_2_Current   = 0
 B_3_Current   = 0
 B_4_Current   = 0
 C_1_Current   = 0
+
+# These stats (Crit_Dmg, Att_Power, Att_Perc, Stat) are only used if Hexa_Stat_Include is True
+Crit_Dmg  = 1.48
+Att_Power = 8434
+Att_Perc  = 1.45
+Stat      = 75027
+# Hexa_Stat_ Main/Alt values are only used if Hexa_Maxed is True, uses a [level,Stat] format, use the following strings of "Stat"
+# 'Crit Damage','Boss Damage','Ignore Def','Reg Damage','Attack','Stat'
+Hexa_Stat_Main  = [4 , 'Boss Damage']
+Hexa_Stat_Alt_0 = [8 , 'Attack']
+Hexa_Stat_Alt_1 = [8 , 'Stat']
 
 ## VERY IMPORTANT TO FILL BOXES (DAMAGE, IED, BOSS_DEF, A_1 ..... C_1_Current)
 ## VERY IMPORTANT TO FILL BOXES (DAMAGE, IED, BOSS_DEF, A_1 ..... C_1_Current)
@@ -132,6 +139,21 @@ def Reverter(Value,Level,List):
     B = Value / A
     C = Value - B
     return B, C
+
+def GiveMeCleanValues(Main,Current,Level,Type):
+    Clean_Value = 0
+    if Main == True:
+        if Type == 'Ignore Def':
+            Clean_Value = 1 - ( 1 - Current )/(1-Stat_Values[Type] * Main_Multi[Level])
+        else:
+            Clean_Value = Current - Stat_Values[Type] * Main_Multi[Level]
+
+    else:
+        if Type == 'Ignore Def':
+            Clean_Value = 1 - ( 1 - Current )/(1-Stat_Values[Type] * Alt_Multi[Level])
+        else:
+            Clean_Value = Current - Stat_Values[Type] * Alt_Multi[Level]
+    return Clean_Value
 
 if FragBase:
     #Fragment cost stuff
@@ -470,14 +492,33 @@ while A_1_Current != 30 or B_1_Current != 30 or B_2_Current != 30 or B_3_Current
     Final_List.append(MegaList[0])
 
 if Hexa_Stat_Include == True:
-    Stat_Values = [
-    [0.07,'Crit Damage'],   # 0, Crit Damage
-    [0.20,'Boss Damage'],   # 1, Boss Damage
-    [0.20,'Ignore Def'],    # 2, Ignore Enemy Defense
-    [0.15,'Reg Damage'],    # 3, Regular Damage
-    [100,'Attack'],         # 4, Attack
-    [2000,'Stat']]          # 5, Main Stat
+    Average_Costs = [
+    [323,5],                   # 5 or lower
+    [617,6],                   # At least 6
+    [1148,7],                  # At least 7
+    [3030,8],                  # At least 8
+    [12609,9],                 # At least 9
+    [145126,10]                # At least 10
+    ]
 
+    Stat_Values = {
+        'Crit Damage': 0.07,
+        'Boss Damage': 0.20,
+        'Ignore Def': 0.20,
+        'Reg Damage': 0.15,
+        'Attack': 100,
+        'Stat': 2000
+    }
+
+    Stat_dict = {
+        'Damage': Damage,
+        'Ignore Def': IED,
+        'Crit Damage': Crit_Dmg,
+        'Attack': Att_Power / (1 + Att_Perc),
+        'Stat': Stat
+    }
+
+    # print(Stat_dict)
     #               0     1     2     3     4     5     6     7     8     9    10
     Stat_Costs = [10.0, 10.0, 10.0, 20.0, 20.0, 20.0, 20.0, 30.0, 40.0, 50.0, 50.0]
     Main_Prob  = [0.35, 0.35, 0.35, 0.20, 0.20, 0.20, 0.20, 0.15, 0.10, 0.05, 0.00]
@@ -485,27 +526,48 @@ if Hexa_Stat_Include == True:
     Main_Multi = [0.00, 0.05, 0.10, 0.15, 0.20, 0.30, 0.40, 0.50, 0.65, 0.80, 1.00]
     Alt_Multi  = [0.00, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50]
 
-    Att_Base = Att_Power / (1 + Att_Perc)
+    if Hexa_Maxed == True:
+        if Hexa_Stat_Main[1] == 'Boss Damage' or Hexa_Stat_Main[1] == 'Reg Damage':
+            Stat_dict_tag_Main = 'Damage'
+        else:
+            Stat_dict_tag_Main = Hexa_Stat_Main[1]
 
-    Crit_Main_Mod = (Stat_Values[0][0] + 1 + Crit_Dmg + (0.2 + 0.5)/2) / (1 + Crit_Dmg + (0.2 + 0.5)/2)
-    Boss_Main_Mod = (Stat_Values[1][0] + Damage + 1) / (Damage + 1)
-    IED_Main_Mod  =((Stat_Values[2][0] - 1)*Boss_Def*(1-IED)*(1-Hidden_IED)+1) / (1-Boss_Def*(1-IED)*(1-Hidden_IED))
-    Dmg_Main_Mod  = (Stat_Values[3][0] + Damage + 1) / (Damage + 1)
-    Att_Main_Mod  = (Stat_Values[4][0] + Att_Base) / Att_Base
-    Stat_Main_Mod = (Stat_Values[5][0] + Stat) / Stat
+        if Hexa_Stat_Alt_0[1] == 'Boss Damage' or Hexa_Stat_Alt_0[1] == 'Reg Damage':
+            Stat_dict_tag_Alt_0 = 'Damage'
+        else:
+            Stat_dict_tag_Alt_0 = Hexa_Stat_Alt_0[1]
 
-    Gains = [
-    [Crit_Main_Mod , Stat_Values[0][1]], 
-    [Boss_Main_Mod , Stat_Values[1][1]], 
-    [IED_Main_Mod  , Stat_Values[2][1]], 
-    [Dmg_Main_Mod  , Stat_Values[3][1]], 
-    [Att_Main_Mod  , Stat_Values[4][1]], 
-    [Stat_Main_Mod , Stat_Values[5][1]]]
+        if Hexa_Stat_Alt_1[1] == 'Boss Damage' or Hexa_Stat_Alt_1[1] == 'Reg Damage':
+            Stat_dict_tag_Alt_1 = 'Damage'
+        else:
+            Stat_dict_tag_Alt_1 = Hexa_Stat_Alt_1[1]
+            
+        # if hexa stats are already being used, then we need to recover the unmodified values
+        Stat_dict[Stat_dict_tag_Main] = GiveMeCleanValues(True,Stat_dict.get(Stat_dict_tag_Main),Hexa_Stat_Main[0],Hexa_Stat_Main[1])
+        Stat_dict[Stat_dict_tag_Alt_0] = GiveMeCleanValues(False,Stat_dict.get(Stat_dict_tag_Alt_0),Hexa_Stat_Alt_0[0],Hexa_Stat_Alt_0[1])
+        Stat_dict[Stat_dict_tag_Alt_1] = GiveMeCleanValues(False,Stat_dict.get(Stat_dict_tag_Alt_1),Hexa_Stat_Alt_1[0],Hexa_Stat_Alt_1[1])
+
+    # print(Stat_dict)
+    Crit_Main_Mod = (Stat_Values['Crit Damage'] + 1 + Stat_dict['Crit Damage'] + (0.2 + 0.5)/2) / (1 + Stat_dict['Crit Damage'] + (0.2 + 0.5)/2)
+    Boss_Main_Mod = (Stat_Values['Boss Damage'] + Stat_dict['Damage'] + 1) / (Stat_dict['Damage'] + 1)
+    IED_Main_Mod  =((Stat_Values['Ignore Def'] - 1)*Boss_Def*(1-Stat_dict['Ignore Def'])*(1-Hidden_IED)+1) / (1-Boss_Def*(1-Stat_dict['Ignore Def'])*(1-Hidden_IED))
+    Dmg_Main_Mod  = (Stat_Values['Reg Damage'] + Stat_dict['Damage'] + 1) / (Stat_dict['Damage'] + 1)
+    Att_Main_Mod  = (Stat_Values['Attack'] + Stat_dict['Attack']) / Stat_dict['Attack']
+    Stat_Main_Mod = (Stat_Values['Stat'] + Stat_dict['Stat']) / Stat_dict['Stat']
+
+    Gains = {
+        'Crit Damage'   :Crit_Main_Mod,
+        'Boss Damage'   :Boss_Main_Mod,
+        'Ignore Def'    :IED_Main_Mod,
+        'Reg Damage'    :Dmg_Main_Mod,
+        'Attack'        :Att_Main_Mod,
+        'Stat'          :Stat_Main_Mod
+    }
 
     print("Order of priority")
-    Gains = sorted(Gains, key=lambda x: x[0], reverse = True)
-    for i in range(len(Gains)):
-        print(Gains[i])
+    Gains = dict(sorted(Gains.items(), key=lambda item: item[1], reverse=True))
+    for key, value in Gains.items():
+        print(f"{key}: {value}")
 
     print("")
 
@@ -513,44 +575,49 @@ if Hexa_Stat_Include == True:
     Best_Value_Alt_0 = []
     Best_Value_Alt_1 = []
     Damage_Over_Cost = []
+    Refined_List = []
 
+    # Damage boost if main level X
     for i in range(len(Main_Multi)):
-        Multi_mod    = Main_Multi[i]
-        Crit_Main_Mod = (Stat_Values[0][0]*Multi_mod + 1 + Crit_Dmg + (0.2 + 0.5)/2) / (1 + Crit_Dmg + (0.2 + 0.5)/2)
-        Boss_Main_Mod = (Stat_Values[1][0]*Multi_mod + Damage + 1) / (Damage + 1)
-        IED_Main_Mod  =((Stat_Values[2][0]*Multi_mod - 1)*Boss_Def*(1-IED)*(1-Hidden_IED)+1) / (1-Boss_Def*(1-IED)*(1-Hidden_IED))
-        Dmg_Main_Mod  = (Stat_Values[3][0]*Multi_mod + Damage + 1) / (Damage + 1)
-        Att_Main_Mod  = (Stat_Values[4][0]*Multi_mod + Att_Base) / Att_Base
-        Stat_Main_Mod = (Stat_Values[5][0]*Multi_mod + Stat) / Stat
-
+        Multi_mod = Main_Multi[i]
+        Crit_Main_Mod = (Stat_Values['Crit Damage'] * Multi_mod + 1 + Stat_dict['Crit Damage'] + (0.2 + 0.5)/2) / (1 + Stat_dict['Crit Damage'] + (0.2 + 0.5)/2)
+        Boss_Main_Mod = (Stat_Values['Boss Damage'] * Multi_mod + Stat_dict['Damage'] + 1) / (Stat_dict['Damage'] + 1)
+        IED_Main_Mod  =((Stat_Values['Ignore Def'] * Multi_mod - 1)*Boss_Def*(1-Stat_dict['Ignore Def'])*(1-Hidden_IED)+1) / (1-Boss_Def*(1-Stat_dict['Ignore Def'])*(1-Hidden_IED))
+        Dmg_Main_Mod  = (Stat_Values['Reg Damage'] * Multi_mod + Stat_dict['Damage'] + 1) / (Stat_dict['Damage'] + 1)
+        Att_Main_Mod  = (Stat_Values['Attack'] * Multi_mod + Stat_dict['Attack']) / Stat_dict['Attack']
+        Stat_Main_Mod = (Stat_Values['Stat'] * Multi_mod + Stat_dict['Stat']) / Stat_dict['Stat']
+        
         Gain_Values = [
-        [Crit_Main_Mod , Stat_Values[0][1]], 
-        [Boss_Main_Mod , Stat_Values[1][1]], 
-        [IED_Main_Mod  , Stat_Values[2][1]], 
-        [Dmg_Main_Mod  , Stat_Values[3][1]], 
-        [Att_Main_Mod  , Stat_Values[4][1]], 
-        [Stat_Main_Mod , Stat_Values[5][1]]]
+            [Crit_Main_Mod, 'Crit Damage'],
+            [Boss_Main_Mod, 'Boss Damage'],
+            [IED_Main_Mod, 'Ignore Def'],
+            [Dmg_Main_Mod, 'Reg Damage'],
+            [Att_Main_Mod, 'Attack'],
+            [Stat_Main_Mod, 'Stat']
+        ]
 
         Gain_Values = sorted(Gain_Values, key=lambda x: x[0], reverse = True)
         Gain_Values[0].append(i)
         Best_Value_Main.append(Gain_Values[0])
 
+    # Damage boost if alt level X
     for i in range(len(Alt_Multi)):
-        Multi_mod    = Alt_Multi[i]
-        Crit_Alt_Mod = (Stat_Values[0][0]*Multi_mod + 1 + Crit_Dmg + (0.2 + 0.5)/2) / (1 + Crit_Dmg + (0.2 + 0.5)/2)
-        Boss_Alt_Mod = (Stat_Values[1][0]*Multi_mod + Damage + 1) / (Damage + 1)
-        IED_Alt_Mod  =((Stat_Values[2][0]*Multi_mod - 1)*Boss_Def*(1-IED)*(1-Hidden_IED)+1) / (1-Boss_Def*(1-IED)*(1-Hidden_IED))
-        Dmg_Alt_Mod  = (Stat_Values[3][0]*Multi_mod + Damage + 1) / (Damage + 1)
-        Att_Alt_Mod  = (Stat_Values[4][0]*Multi_mod + Att_Base) / Att_Base
-        Stat_Alt_Mod = (Stat_Values[5][0]*Multi_mod + Stat) / Stat
-    
+        Multi_mod = Alt_Multi[i]
+        Crit_Main_Mod = (Stat_Values['Crit Damage'] * Multi_mod + 1 + Stat_dict['Crit Damage'] + (0.2 + 0.5)/2) / (1 + Stat_dict['Crit Damage'] + (0.2 + 0.5)/2)
+        Boss_Main_Mod = (Stat_Values['Boss Damage'] * Multi_mod + Stat_dict['Damage'] + 1) / (Stat_dict['Damage'] + 1)
+        IED_Main_Mod  =((Stat_Values['Ignore Def'] * Multi_mod - 1)*Boss_Def*(1-Stat_dict['Ignore Def'])*(1-Hidden_IED)+1) / (1-Boss_Def*(1-Stat_dict['Ignore Def'])*(1-Hidden_IED))
+        Dmg_Main_Mod  = (Stat_Values['Reg Damage'] * Multi_mod + Stat_dict['Damage'] + 1) / (Stat_dict['Damage'] + 1)
+        Att_Main_Mod  = (Stat_Values['Attack'] * Multi_mod + Stat_dict['Attack']) / Stat_dict['Attack']
+        Stat_Main_Mod = (Stat_Values['Stat'] * Multi_mod + Stat_dict['Stat']) / Stat_dict['Stat']
+        
         Gain_Values = [
-        [Crit_Alt_Mod , Stat_Values[0][1]], 
-        [Boss_Alt_Mod , Stat_Values[1][1]], 
-        [IED_Alt_Mod  , Stat_Values[2][1]], 
-        [Dmg_Alt_Mod  , Stat_Values[3][1]], 
-        [Att_Alt_Mod  , Stat_Values[4][1]], 
-        [Stat_Alt_Mod , Stat_Values[5][1]]]
+            [Crit_Main_Mod, 'Crit Damage'],
+            [Boss_Main_Mod, 'Boss Damage'],
+            [IED_Main_Mod, 'Ignore Def'],
+            [Dmg_Main_Mod, 'Reg Damage'],
+            [Att_Main_Mod, 'Attack'],
+            [Stat_Main_Mod, 'Stat']
+        ]
 
         Gain_Values = sorted(Gain_Values, key=lambda x: x[0], reverse = True)
         Gain_Values[1].append(i)
@@ -558,66 +625,114 @@ if Hexa_Stat_Include == True:
         Gain_Values[2].append(i)
         Best_Value_Alt_1.append(Gain_Values[2])
 
-    for i in range(len(Main_Multi)):
-        # modulate how much the level up costs
-        Total_Cost = Stat_Costs[i]
-        # quantify the average damage gained by leveling up
-        Main_Delta_Boost = ((Best_Value_Main[i][0] - 1) - (Best_Value_Main[i-1][0] - 1)) * Main_Prob[i]
-        Alt_0_Delta_Boost = ((Best_Value_Alt_0[i][0] - 1) - (Best_Value_Alt_0[i-1][0] - 1)) * (1-Main_Prob[i])/2
-        Alt_1_Delta_Boost = ((Best_Value_Alt_1[i][0] - 1) - (Best_Value_Alt_1[i-1][0] - 1)) * (1-Main_Prob[i])/2
+        # Damage boost if leveling up
+    if Hexa_Maxed == False:
+        for i in range(len(Main_Multi)):
+            # modulate how much the level up costs
+            Total_Cost = Stat_Costs[i]
+            # quantify the average damage gained by leveling up
+            Main_Delta_Boost = ((Best_Value_Main[i][0] - 1) - (Best_Value_Main[i-1][0] - 1)) * Main_Prob[i]
+            Alt_0_Delta_Boost = ((Best_Value_Alt_0[i][0] - 1) - (Best_Value_Alt_0[i-1][0] - 1)) * (1-Main_Prob[i])/2
+            Alt_1_Delta_Boost = ((Best_Value_Alt_1[i][0] - 1) - (Best_Value_Alt_1[i-1][0] - 1)) * (1-Main_Prob[i])/2
 
-        if i == 0:
-            Main_Delta_Boost = (Best_Value_Main[i+1][0] - 1) * Main_Prob[i]
-            Alt_0_Delta_Boost = (Best_Value_Alt_0[i+1][0] - 1) * (1-Main_Prob[i])/2
-            Alt_1_Delta_Boost = (Best_Value_Alt_1[i+1][0] - 1) * (1-Main_Prob[i])/2
+            if i == 0:
+                Main_Delta_Boost = (Best_Value_Main[i+1][0] - 1) * Main_Prob[i]
+                Alt_0_Delta_Boost = (Best_Value_Alt_0[i+1][0] - 1) * (1-Main_Prob[i])/2
+                Alt_1_Delta_Boost = (Best_Value_Alt_1[i+1][0] - 1) * (1-Main_Prob[i])/2
+                
+            Delta_Boost = Main_Delta_Boost + Alt_0_Delta_Boost + Alt_1_Delta_Boost
+                
+            Add_To_List = [i, Delta_Boost / Total_Cost, "Stat Core"]
+            Damage_Over_Cost.append(Add_To_List)
+
+        DOC_Compressed = []
+        for i in range(len(Damage_Over_Cost)):
+            Damage_Over_Cost[i][1] = round(Damage_Over_Cost[i][1],16)
+            if i > 0:
+                if Damage_Over_Cost[i][1] != Damage_Over_Cost[i-1][1]:
+                    DOC_Compressed.append(Damage_Over_Cost[i-1])
+
+        DOC_Filtered = []
+        DOC_Point_Tracker = []
+        for i in range(len(DOC_Compressed)):
+            if i > 0:
+                if DOC_Compressed[i][1] <= DOC_Compressed[i-1][1]:
+                    DOC_Filtered.append(DOC_Compressed[i-1])
+                else:
+                    DOC_Point_Tracker.append(i)
+        if DOC_Compressed[-1][1] <= DOC_Filtered[-1][1]:
+            DOC_Filtered.append(DOC_Compressed[i])
+
+        for i in range(len(DOC_Point_Tracker)):
+            DOC_Filtered[DOC_Point_Tracker[i]-1][1] = DOC_Compressed[DOC_Point_Tracker[i]-1][1]
+
+        for i in range(len(DOC_Filtered)):
+            DOC_Filtered[i][0] = "Until " + str(DOC_Filtered[i][0] + 1)
+
+        DOC_Filtered[-1][0] = "Max it"
         
-        Delta_Boost = Main_Delta_Boost + Alt_0_Delta_Boost + Alt_1_Delta_Boost
+        Final_List = Final_List + DOC_Filtered
+        Final_List = sorted(Final_List, key=lambda x: x[1], reverse = True)
+    else:
+        # Damage boost if refining
+        Main_key, Main_Value = list(Gains.items())[0]
+        Alt_0_key, Alt_0_Value = list(Gains.items())[1]
+        Alt_1_key, Alt_1_Value = list(Gains.items())[2]
+    #    print(Main_key, Main_Value)
+    #    print(Alt_0_key, Alt_0_Value)
+    #    print(Alt_1_key, Alt_1_Value)
         
-        Add_To_List = [i, Delta_Boost / Total_Cost, "Stat Core"]
-        Damage_Over_Cost.append(Add_To_List)
+        Multi_Values = [Main_Multi[Hexa_Stat_Main[0]], Alt_Multi[Hexa_Stat_Alt_0[0]], Alt_Multi[Hexa_Stat_Alt_1[0]]]
+        Multi_Values = sorted(Multi_Values, reverse=True)
+        Old_Boost0 = (Main_Value - 1) * Multi_Values[0]
+        Old_Boost1 = (Alt_0_Value - 1) * Multi_Values[1]
+        Old_Boost2 = (Alt_1_Value - 1) * Multi_Values[2]
+        Old_Boost = Old_Boost0 + Old_Boost1 + Old_Boost2
+        print(Old_Boost)
+    #    print(Multi_Values)
 
-    DOC_Compressed = []
-    for i in range(len(Damage_Over_Cost)):
-        Damage_Over_Cost[i][1] = round(Damage_Over_Cost[i][1],16)
-        if i > 0:
-            if Damage_Over_Cost[i][1] != Damage_Over_Cost[i-1][1]:
-                DOC_Compressed.append(Damage_Over_Cost[i-1])
-
-
-    DOC_Filtered = []
-    for i in range(len(DOC_Compressed)):
-        if i > 0:
-            if DOC_Compressed[i][1] <= DOC_Compressed[i-1][1]:
-                DOC_Filtered.append(DOC_Compressed[i-1])
-
-    DOC_Compressed = []
-    for i in range(len(Damage_Over_Cost)):
-        Damage_Over_Cost[i][1] = round(Damage_Over_Cost[i][1],16)
-        if i > 0:
-            if Damage_Over_Cost[i][1] != Damage_Over_Cost[i-1][1]:
-                DOC_Compressed.append(Damage_Over_Cost[i-1])
-
-    DOC_Filtered = []
-    DOC_Point_Tracker = []
-    for i in range(len(DOC_Compressed)):
-        if i > 0:
-            if DOC_Compressed[i][1] <= DOC_Compressed[i-1][1]:
-                DOC_Filtered.append(DOC_Compressed[i-1])
+        min_refine = Hexa_Stat_Main[0]
+        if Hexa_Stat_Main[0] <= Average_Costs[0][1]:
+            min_refine = Average_Costs[0][1] + 1
+        for i in range(min_refine,len(Main_Multi)):
+            Max = 20
+            Main_Boost  = 0
+            Alt_Level_0 = 0
+            Alt_Level_1 = 0
+            if (Max - i) % 2 == 0:
+                Alt_Level_0 = (Max - i) / 2
+                Alt_Level_1 = (Max - i) / 2
             else:
-                DOC_Point_Tracker.append(i)
-    if DOC_Compressed[-1][1] <= DOC_Filtered[-1][1]:
-        DOC_Filtered.append(DOC_Compressed[i])
-
-    for i in range(len(DOC_Point_Tracker)):
-        DOC_Filtered[DOC_Point_Tracker[i]-1][1] = DOC_Compressed[DOC_Point_Tracker[i]-1][1]
-
-    for i in range(len(DOC_Filtered)):
-        DOC_Filtered[i][0] = "Until " + str(DOC_Filtered[i][0] + 1)
-
-    Final_List = Final_List + DOC_Filtered
-    Final_List = sorted(Final_List, key=lambda x: x[1], reverse = True)
+                Alt_Level_0 = (Max - i + 1) / 2
+                Alt_Level_1 = (Max - i - 1) / 2    
+                
+            Alt_Boost_0 = Alt_Multi[int(Alt_Level_0)]
+            Alt_Boost_1 = Alt_Multi[int(Alt_Level_1)]
+            Multi_Values = [Main_Multi[i], Alt_Boost_0, Alt_Boost_1]
+            Multi_Values = sorted(Multi_Values, reverse=True)
+    #        print(Multi_Values)
+            
+            Total_Boost = (Main_Value-1)*Multi_Values[0] + (Alt_0_Value-1)*Multi_Values[1] + (Alt_1_Value-1)*Multi_Values[2]
+            
+            if i < Average_Costs[0][1]:
+                Total_Cost = Average_Costs[0][0]
+            else:
+                Total_Cost = Average_Costs[i - Average_Costs[0][1]][0]
+                
+    #        print(str(i) + "    " + str(Total_Cost))
+            Add_To_List = [i,(Total_Boost - Old_Boost)/ Total_Cost, "Stat Core"]
+            Refined_List.append(Add_To_List)
+            
+            for i in range(len(Refined_List)):
+                if Refined_List[i][1] <= 0:
+                    del Refined_List[i]
+            
+        Final_List = Final_List + Refined_List
+        Final_List = sorted(Final_List, key=lambda x: x[1], reverse = True)
 ###
-
+for i in range(len(Final_List)):
+    print(Final_List[i])
+print("")
 
 # merge any consecutive patterns A_1 [0,1,2,3,4,5] -> A_1 [5]
 Compressed_Final_List = [Final_List[0]]  # Initialize with the first element
@@ -687,7 +802,10 @@ else:
 title_text = "Dark Knight 6th Job Optimization GMS " + supplementary_title 
 author_text = "By: LazyVista (XseedGames)"
 if Hexa_Stat_Include == True:
-    priority_text = "No Rerolling --- " + Gains[0][1] + " / " + Gains[1][1] + " / " + Gains[2][1]
+    if Hexa_Maxed == False:
+        priority_text = "No Rerolling --- " + list(Gains.items())[0][0] + " / " + list(Gains.items())[1][0] + " / " + list(Gains.items())[2][0]
+    else:
+        priority_text = "Rerolling Style --- " + list(Gains.items())[0][0] + " / " + list(Gains.items())[1][0] + " / " + list(Gains.items())[2][0]
 title_font_size = 36  # Adjust to your desired font size
 author_font_size = 24  # Adjust to your desired font size
 tile_border_size = 2
