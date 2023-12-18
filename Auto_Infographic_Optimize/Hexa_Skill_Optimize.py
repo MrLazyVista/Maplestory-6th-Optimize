@@ -27,7 +27,10 @@ Boss_Def    = 3.80
 # B_3 for third (Cyclone), etc etc
 # C_1 represents your Origin Skill, and how big you expect it to be (BA percentage wise)
 # Input an estimated BA contribution for level one if Origin is currently nonexistant
-B_1     = 0.25 
+A_1     = 0.25
+B_1     = 0.25
+B_2     = 0.20
+B_3     = 0.15 
 B_4     = 0.08
 C_1     = 0.12
 
