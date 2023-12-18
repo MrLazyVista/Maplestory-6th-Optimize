@@ -10,13 +10,13 @@ import numpy
 # Optimize for rerolling Hexa Core = True
 FragBase    = True
 Hexa_Stat_Include = True
-Hexa_Maxed  = False
+Hexa_Maxed  = True
 # Use decimal values 98% = 0.98, 612% = 6.12, etc etc
 # Damage is Boss% + Damage%,
 # IED is what you see on character sheet
 # Hidden IED is IED that doesnt show up on your character page, explorer link, built into skills, debuffs, etc etc
 Damage      = 7.00
-IED         = 0.97
+IED         = 0.96
 Hidden_IED  = 0.4
 Boss_Def    = 3.80
 
@@ -28,11 +28,11 @@ Boss_Def    = 3.80
 # C_1 represents your Origin Skill, and how big you expect it to be (BA percentage wise)
 # Input an estimated BA contribution for level one if Origin is currently nonexistant
 A_1     = 0.25
-B_1     = 0.25
+B_1     = 0.25 
 B_2     = 0.20
 B_3     = 0.15
 B_4     = 0.08
-C_1     = 0.10
+C_1     = 0.12
 
 # Current Skill Levels (6th Core)
 A_1_Current   = 0
@@ -40,7 +40,7 @@ B_1_Current   = 0
 B_2_Current   = 0
 B_3_Current   = 0
 B_4_Current   = 0
-C_1_Current   = 0
+C_1_Current   = 1
 
 # These stats (Crit_Dmg, Att_Power, Att_Perc, Stat) are only used if Hexa_Stat_Include is True
 Crit_Dmg  = 1.48
@@ -154,6 +154,15 @@ def GiveMeCleanValues(Main,Current,Level,Type):
         else:
             Clean_Value = Current - Stat_Values[Type] * Alt_Multi[Level]
     return Clean_Value
+
+def sum_entries_up_to_number(lst, num):
+    # Use list slicing to get the sublist from index 0 to num
+    sublist = lst[:num + 1]
+    
+    # Use the sum() function to calculate the sum of the sublist
+    total_sum = sum(sublist)
+    
+    return total_sum
 
 if FragBase:
     #Fragment cost stuff
@@ -352,7 +361,22 @@ B_2_boost   = 30 * [0]
 B_3_boost   = 30 * [0]
 B_4_boost   = 30 * [0]
 C_1_boost   = 30 * [0]
-
+BoostArray  = {
+    'A_1'   :   0,
+    'B_1'   :   0,
+    'B_2'   :   0,
+    'B_3'   :   0,
+    'B_4'   :   0,
+    'C_1'   :   0,
+    }
+CostArray   = {
+    'A_1'   :   0,
+    'B_1'   :   0,
+    'B_2'   :   0,
+    'B_3'   :   0,
+    'B_4'   :   0,
+    'C_1'   :   0,
+    }
 Final_List  = []
 
 # Mod Values are the skill BA contributions if there were no 6th progress except for origin(makes the math simplier)
@@ -417,7 +441,6 @@ else:
     C_1_boost = Fill_Boost(C_1_boost,"C",C_1_Aux ,C_1    ,0  ,len(C_cost))
 
 # print(Amod_1,Bmod_1,Bmod_2,Bmod_3,Bmod_4,C_1)
-
 while A_1_Current != 30 or B_1_Current != 30 or B_2_Current != 30 or B_3_Current != 30 or B_4_Current != 30 or C_1_Current != 30:
     A_1_Delta_boost = ListSubtractConstant(A_1_boost,A_1_Current)
     B_1_Delta_boost = ListSubtractConstant(B_1_boost,B_1_Current)
@@ -478,17 +501,33 @@ while A_1_Current != 30 or B_1_Current != 30 or B_2_Current != 30 or B_3_Current
     # The first entry on the compressed list is a single entry, record the level changes, repeat the process, until everything is level 30
     if MegaList[0][2]   == "A_1":
         A_1_Current = MegaList[0][0]
+        BoostArray['A_1'] = A_1_boost[A_1_Current - 1]
+        CostArray['A_1'] = sum_entries_up_to_number(A_cost,A_1_Current - 1)
     elif MegaList[0][2] == "B_1":
         B_1_Current = MegaList[0][0]
+        BoostArray['B_1'] = B_1_boost[B_1_Current - 1]
+        CostArray['B_1'] = sum_entries_up_to_number(B_cost,B_1_Current - 1)
     elif MegaList[0][2] == "B_2":
         B_2_Current = MegaList[0][0]
+        BoostArray['B_2'] = B_2_boost[B_2_Current - 1]
+        CostArray['B_2'] = sum_entries_up_to_number(B_cost,B_2_Current - 1)
     elif MegaList[0][2] == "B_3":
         B_3_Current = MegaList[0][0]
+        BoostArray['B_3'] = B_3_boost[B_3_Current - 1]
+        CostArray['B_3'] = sum_entries_up_to_number(B_cost,B_3_Current - 1)
     elif MegaList[0][2] == "B_4":
         B_4_Current = MegaList[0][0]
+        BoostArray['B_4'] = B_4_boost[B_4_Current - 1]
+        CostArray['B_4'] = sum_entries_up_to_number(B_cost,B_4_Current - 1)
     elif MegaList[0][2] == "C_1":
         C_1_Current = MegaList[0][0]
+        BoostArray['C_1'] = C_1_boost[C_1_Current - 1]
+        CostArray['C_1'] = sum_entries_up_to_number(C_cost,C_1_Current - 1)
         
+    BoostArraySum = round(sum(BoostArray.values()),5)
+    CostArraySum = round(sum(CostArray.values()))
+    MegaList[0].append(BoostArraySum)
+    MegaList[0].append(CostArraySum)
     Final_List.append(MegaList[0])
 
 if Hexa_Stat_Include == True:

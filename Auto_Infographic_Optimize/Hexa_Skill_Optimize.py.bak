@@ -16,7 +16,7 @@ Hexa_Maxed  = True
 # IED is what you see on character sheet
 # Hidden IED is IED that doesnt show up on your character page, explorer link, built into skills, debuffs, etc etc
 Damage      = 7.00
-IED         = 0.97
+IED         = 0.96
 Hidden_IED  = 0.4
 Boss_Def    = 3.80
 
@@ -27,12 +27,12 @@ Boss_Def    = 3.80
 # B_3 for third (Cyclone), etc etc
 # C_1 represents your Origin Skill, and how big you expect it to be (BA percentage wise)
 # Input an estimated BA contribution for level one if Origin is currently nonexistant
-A_1     = 0.25
-B_1     = 0.25
-B_2     = 0.20
-B_3     = 0.15
-B_4     = 0.08
-C_1     = 0.10
+A_1     = 0.0993
+B_1     = 0.2456 
+B_2     = 0.1585
+B_3     = 0.1645
+B_4     = 0.0791
+C_1     = 0.1226
 
 # Current Skill Levels (6th Core)
 A_1_Current   = 0
@@ -40,7 +40,7 @@ B_1_Current   = 0
 B_2_Current   = 0
 B_3_Current   = 0
 B_4_Current   = 0
-C_1_Current   = 0
+C_1_Current   = 1
 
 # These stats (Crit_Dmg, Att_Power, Att_Perc, Stat) are only used if Hexa_Stat_Include is True
 Crit_Dmg  = 1.48
@@ -730,9 +730,6 @@ if Hexa_Stat_Include == True:
         Final_List = Final_List + Refined_List
         Final_List = sorted(Final_List, key=lambda x: x[1], reverse = True)
 ###
-for i in range(len(Final_List)):
-    print(Final_List[i])
-print("")
 
 # merge any consecutive patterns A_1 [0,1,2,3,4,5] -> A_1 [5]
 Compressed_Final_List = [Final_List[0]]  # Initialize with the first element
