@@ -27,12 +27,12 @@ Boss_Def    = 3.80
 # B_3 for third (Cyclone), etc etc
 # C_1 represents your Origin Skill, and how big you expect it to be (BA percentage wise)
 # Input an estimated BA contribution for level one if Origin is currently nonexistant
-A_1     = 0.0993
-B_1     = 0.2456 
-B_2     = 0.1585
-B_3     = 0.1645
-B_4     = 0.0791
-C_1     = 0.1226
+A_1     = 0.25
+B_1     = 0.25 
+B_2     = 0.20
+B_3     = 0.15
+B_4     = 0.08
+C_1     = 0.10
 
 # Current Skill Levels (6th Core)
 A_1_Current   = 0
@@ -155,6 +155,15 @@ def GiveMeCleanValues(Main,Current,Level,Type):
             Clean_Value = Current - Stat_Values[Type] * Alt_Multi[Level]
     return Clean_Value
 
+def sum_entries_up_to_number(lst, num):
+    # Use list slicing to get the sublist from index 0 to num
+    sublist = lst[:num + 1]
+    
+    # Use the sum() function to calculate the sum of the sublist
+    total_sum = sum(sublist)
+    
+    return total_sum
+
 if FragBase:
     #Fragment cost stuff
     A_cost =[50
@@ -208,7 +217,7 @@ if FragBase:
     ,113
     ,120
     ,263
-    ,126
+    ,128
     ,135
     ,143
     ,150
@@ -216,7 +225,7 @@ if FragBase:
     ,165
     ,173
     ,180
-    ,180
+    ,188
     ,375]
     
     # 0.01 is simply just to avoid a divide by 0 error
@@ -352,7 +361,22 @@ B_2_boost   = 30 * [0]
 B_3_boost   = 30 * [0]
 B_4_boost   = 30 * [0]
 C_1_boost   = 30 * [0]
-
+BoostArray  = {
+    'A_1'   :   0,
+    'B_1'   :   0,
+    'B_2'   :   0,
+    'B_3'   :   0,
+    'B_4'   :   0,
+    'C_1'   :   0,
+    }
+CostArray   = {
+    'A_1'   :   0,
+    'B_1'   :   0,
+    'B_2'   :   0,
+    'B_3'   :   0,
+    'B_4'   :   0,
+    'C_1'   :   0,
+    }
 Final_List  = []
 
 # Mod Values are the skill BA contributions if there were no 6th progress except for origin(makes the math simplier)
@@ -416,8 +440,8 @@ else:
     B_4_boost = Fill_Boost(B_4_boost,"B",B_4_Aux ,Bmod_4 ,0  ,len(B_cost))
     C_1_boost = Fill_Boost(C_1_boost,"C",C_1_Aux ,C_1    ,0  ,len(C_cost))
 
+BoostArray['C_1'] = C_1_boost[0]
 # print(Amod_1,Bmod_1,Bmod_2,Bmod_3,Bmod_4,C_1)
-
 while A_1_Current != 30 or B_1_Current != 30 or B_2_Current != 30 or B_3_Current != 30 or B_4_Current != 30 or C_1_Current != 30:
     A_1_Delta_boost = ListSubtractConstant(A_1_boost,A_1_Current)
     B_1_Delta_boost = ListSubtractConstant(B_1_boost,B_1_Current)
@@ -478,17 +502,33 @@ while A_1_Current != 30 or B_1_Current != 30 or B_2_Current != 30 or B_3_Current
     # The first entry on the compressed list is a single entry, record the level changes, repeat the process, until everything is level 30
     if MegaList[0][2]   == "A_1":
         A_1_Current = MegaList[0][0]
+        BoostArray['A_1'] = A_1_boost[A_1_Current - 1]
+        CostArray['A_1'] = sum_entries_up_to_number(A_cost,A_1_Current - 1)
     elif MegaList[0][2] == "B_1":
         B_1_Current = MegaList[0][0]
+        BoostArray['B_1'] = B_1_boost[B_1_Current - 1]
+        CostArray['B_1'] = sum_entries_up_to_number(B_cost,B_1_Current - 1)
     elif MegaList[0][2] == "B_2":
         B_2_Current = MegaList[0][0]
+        BoostArray['B_2'] = B_2_boost[B_2_Current - 1]
+        CostArray['B_2'] = sum_entries_up_to_number(B_cost,B_2_Current - 1)
     elif MegaList[0][2] == "B_3":
         B_3_Current = MegaList[0][0]
+        BoostArray['B_3'] = B_3_boost[B_3_Current - 1]
+        CostArray['B_3'] = sum_entries_up_to_number(B_cost,B_3_Current - 1)
     elif MegaList[0][2] == "B_4":
         B_4_Current = MegaList[0][0]
+        BoostArray['B_4'] = B_4_boost[B_4_Current - 1]
+        CostArray['B_4'] = sum_entries_up_to_number(B_cost,B_4_Current - 1)
     elif MegaList[0][2] == "C_1":
         C_1_Current = MegaList[0][0]
+        BoostArray['C_1'] = C_1_boost[C_1_Current - 1]
+        CostArray['C_1'] = sum_entries_up_to_number(C_cost,C_1_Current - 1)
         
+    BoostArraySum = round(sum(BoostArray.values()),5)
+    CostArraySum = round(sum(CostArray.values()))
+    MegaList[0].append(BoostArraySum)
+    MegaList[0].append(CostArraySum)
     Final_List.append(MegaList[0])
 
 if Hexa_Stat_Include == True:
