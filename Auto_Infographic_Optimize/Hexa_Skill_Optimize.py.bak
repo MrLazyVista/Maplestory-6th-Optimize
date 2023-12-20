@@ -30,7 +30,7 @@ Boss_Def    = 3.80
 A_1     = 0.20
 B_1     = 0.25
 B_2     = 0.20
-B_3     = 0.15 
+B_3     = 0.17 
 B_4     = 0.08
 C_1     = 0.12
 
@@ -40,7 +40,7 @@ B_1_Current   = 0
 B_2_Current   = 0
 B_3_Current   = 0
 B_4_Current   = 0
-C_1_Current   = 1
+C_1_Current   = 0
 
 # These stats (Crit_Dmg, Att_Power, Att_Perc, Stat) are only used if Hexa_Stat_Include is True
 Crit_Dmg  = 1.48
@@ -418,7 +418,6 @@ else:
     B_4_Multi_boost = Fill_Boost(B_4_boost,"B",B_4_Aux ,1 ,0  ,len(B_cost))
     C_1_Multi_boost = Fill_Boost(C_1_boost,"C",C_1_Aux ,1 ,0  ,len(C_cost))
     C_1_Multi_boost = [x - C_1_Multi_boost[0] for x in C_1_Multi_boost]
-    print(C_1_Multi_boost)
     Revert_Amod_1,Delta_A_1  = Reverter(A_1,A_1_Current,A_1_Multi_boost)
     Revert_Bmod_1,Delta_B_1  = Reverter(B_1,B_1_Current,B_1_Multi_boost) 
     Revert_Bmod_2,Delta_B_2  = Reverter(B_2,B_2_Current,B_2_Multi_boost)
@@ -426,7 +425,6 @@ else:
     Revert_Bmod_4,Delta_B_4  = Reverter(B_4,B_4_Current,B_4_Multi_boost)
     Revert_C_1   ,Delta_C_1  = Reverter(C_1,C_1_Current,C_1_Multi_boost)
 
-    
     Delta_T = Delta_A_1 + Delta_B_1 + Delta_B_2 + Delta_B_3 + Delta_B_4 + Delta_C_1
     
     Amod_1  = Revert_Amod_1 * ( 1 + Delta_T )
@@ -445,17 +443,17 @@ else:
 
 # input initial boost and cost values
 if A_1_Current != 0:
-    BoostArray['A_1'] = A_1_boost[A_1_Current]
+    BoostArray['A_1'] = A_1_boost[A_1_Current-1]
 if B_1_Current != 0:
-    BoostArray['B_1'] = B_1_boost[B_1_Current]
+    BoostArray['B_1'] = B_1_boost[B_1_Current-1]
 if B_2_Current != 0:
-    BoostArray['B_2'] = B_2_boost[B_2_Current]
+    BoostArray['B_2'] = B_2_boost[B_2_Current-1]
 if B_3_Current != 0:
-    BoostArray['B_3'] = B_3_boost[B_3_Current]
+    BoostArray['B_3'] = B_3_boost[B_3_Current-1]
 if B_4_Current != 0:
-    BoostArray['B_4'] = B_4_boost[B_4_Current]
+    BoostArray['B_4'] = B_4_boost[B_4_Current-1]
 if C_1_Current != 0:
-    BoostArray['C_1'] = C_1_boost[C_1_Current]
+    BoostArray['C_1'] = C_1_boost[C_1_Current-1]
 else:
     BoostArray['C_1'] = C_1
     

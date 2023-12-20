@@ -27,10 +27,10 @@ Boss_Def    = 3.80
 # B_3 for third (Cyclone), etc etc
 # C_1 represents your Origin Skill, and how big you expect it to be (BA percentage wise)
 # Input an estimated BA contribution for level one if Origin is currently nonexistant
-A_1     = 0.25
+A_1     = 0.20
 B_1     = 0.25
 B_2     = 0.20
-B_3     = 0.15 
+B_3     = 0.17 
 B_4     = 0.08
 C_1     = 0.12
 
@@ -378,12 +378,14 @@ CostArray   = {
     'C_1'   :   0,
     }
 Final_List  = []
+C_1_Changed = False
 
 # Mod Values are the skill BA contributions if there were no 6th progress except for origin(makes the math simplier)
 # if C_1_Current = 0 then that means you got a naked skill tree so everything is by default 0
 # if C_1 does not equal zero then, some conversions will have to be done
 if C_1_Current == 0:
     C_1_Current = 1
+    C_1_Changed = True
     Amod_1  = A_1 / ( 1 + C_1)
     Bmod_1  = B_1 / ( 1 + C_1)
     Bmod_2  = B_2 / ( 1 + C_1)
@@ -470,8 +472,15 @@ if B_4_Current != 0:
 if C_1_Current != 0:
     CostArray['C_1'] = sum_entries_up_to_number(C_cost,C_1_Current - 1)
 else:
-    BoostArray['C_1'] = 0
-    
+    CostArray['C_1'] = 0
+
+if C_1_Changed == False:
+    print('Total FD gained currently : ' + str(round(sum(BoostArray.values()),5)))
+else:
+    print('Total FD gained currently : ' + str(round(sum(BoostArray.values()),5) - C_1))
+print('Total Resources Spent     : ' + str(round(sum(CostArray.values()),0)))
+print('')
+
 # print(Amod_1,Bmod_1,Bmod_2,Bmod_3,Bmod_4,C_1)
 while A_1_Current != 30 or B_1_Current != 30 or B_2_Current != 30 or B_3_Current != 30 or B_4_Current != 30 or C_1_Current != 30:
     A_1_Delta_boost = ListSubtractConstant(A_1_boost,A_1_Current)
