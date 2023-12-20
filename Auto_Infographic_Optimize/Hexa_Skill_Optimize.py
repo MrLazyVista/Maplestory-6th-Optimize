@@ -34,13 +34,13 @@ B_3     = 0.15
 B_4     = 0.08
 C_1     = 0.12
 
-# Current Skill Levels (6th Core)
+# Current Skill Levels (6th Core)x
 A_1_Current   = 0
 B_1_Current   = 0
 B_2_Current   = 0
 B_3_Current   = 0
 B_4_Current   = 0
-C_1_Current   = 1
+C_1_Current   = 0
 
 # These stats (Crit_Dmg, Att_Power, Att_Perc, Stat) are only used if Hexa_Stat_Include is True
 Crit_Dmg  = 1.48
@@ -417,13 +417,14 @@ else:
     B_3_Multi_boost = Fill_Boost(B_3_boost,"B",B_3_Aux ,1 ,0  ,len(B_cost))
     B_4_Multi_boost = Fill_Boost(B_4_boost,"B",B_4_Aux ,1 ,0  ,len(B_cost))
     C_1_Multi_boost = Fill_Boost(C_1_boost,"C",C_1_Aux ,1 ,0  ,len(C_cost))
+    C_1_Multi_boost = [x - C_1_Multi_boost[0] for x in C_1_Multi_boost]
     Revert_Amod_1,Delta_A_1  = Reverter(A_1,A_1_Current,A_1_Multi_boost)
     Revert_Bmod_1,Delta_B_1  = Reverter(B_1,B_1_Current,B_1_Multi_boost) 
     Revert_Bmod_2,Delta_B_2  = Reverter(B_2,B_2_Current,B_2_Multi_boost)
     Revert_Bmod_3,Delta_B_3  = Reverter(B_3,B_3_Current,B_3_Multi_boost)
     Revert_Bmod_4,Delta_B_4  = Reverter(B_4,B_4_Current,B_4_Multi_boost)
     Revert_C_1   ,Delta_C_1  = Reverter(C_1,C_1_Current,C_1_Multi_boost)
-    
+
     Delta_T = Delta_A_1 + Delta_B_1 + Delta_B_2 + Delta_B_3 + Delta_B_4 + Delta_C_1
     
     Amod_1  = Revert_Amod_1 * ( 1 + Delta_T )
@@ -440,7 +441,37 @@ else:
     B_4_boost = Fill_Boost(B_4_boost,"B",B_4_Aux ,Bmod_4 ,0  ,len(B_cost))
     C_1_boost = Fill_Boost(C_1_boost,"C",C_1_Aux ,C_1    ,0  ,len(C_cost))
 
-BoostArray['C_1'] = C_1_boost[0]
+# input initial boost and cost values
+if A_1_Current != 0:
+    BoostArray['A_1'] = A_1_boost[A_1_Current-1]
+if B_1_Current != 0:
+    BoostArray['B_1'] = B_1_boost[B_1_Current-1]
+if B_2_Current != 0:
+    BoostArray['B_2'] = B_2_boost[B_2_Current-1]
+if B_3_Current != 0:
+    BoostArray['B_3'] = B_3_boost[B_3_Current-1]
+if B_4_Current != 0:
+    BoostArray['B_4'] = B_4_boost[B_4_Current-1]
+if C_1_Current != 0:
+    BoostArray['C_1'] = C_1_boost[C_1_Current-1]
+else:
+    BoostArray['C_1'] = C_1
+    
+if A_1_Current != 0:
+    CostArray['A_1'] = sum_entries_up_to_number(A_cost,A_1_Current - 1)
+if B_1_Current != 0:
+    CostArray['B_1'] = sum_entries_up_to_number(B_cost,B_1_Current - 1)
+if B_2_Current != 0:
+    CostArray['B_2'] = sum_entries_up_to_number(B_cost,B_2_Current - 1)
+if B_3_Current != 0:
+    CostArray['B_3'] = sum_entries_up_to_number(B_cost,B_3_Current - 1)
+if B_4_Current != 0:
+    CostArray['B_4'] = sum_entries_up_to_number(B_cost,B_4_Current - 1)
+if C_1_Current != 0:
+    CostArray['C_1'] = sum_entries_up_to_number(C_cost,C_1_Current - 1)
+else:
+    BoostArray['C_1'] = 0
+    
 # print(Amod_1,Bmod_1,Bmod_2,Bmod_3,Bmod_4,C_1)
 while A_1_Current != 30 or B_1_Current != 30 or B_2_Current != 30 or B_3_Current != 30 or B_4_Current != 30 or C_1_Current != 30:
     A_1_Delta_boost = ListSubtractConstant(A_1_boost,A_1_Current)
