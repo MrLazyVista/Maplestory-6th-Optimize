@@ -33,22 +33,22 @@ Base_Numbers = {
 # C_1 represents your Origin Skill, and how big you expect it to be (BA percentage wise)
 # Input an estimated BA contribution for level one if Origin is currently nonexistant
 Damage_Distribution = {
-    'A_1': 21.3,
-    'B_1': 21.6,
-    'B_2': 13.3,
-    'B_3': 16,
+    'A_1': 20,
+    'B_1': 25,
+    'B_2': 20,
+    'B_3': 17,
     'B_4': 9,
     'C_1': 9,
 }
 
 # Current Skill Levels (6th Core)
 Level_Distribution = {
-    'A_1_Level': 15,
-    'B_1_Level': 10,
-    'B_2_Level': 2,
-    'B_3_Level': 2,
-    'B_4_Level': 1,
-    'C_1_Level': 6,
+    'A_1_Level': 0,
+    'B_1_Level': 0,
+    'B_2_Level': 0,
+    'B_3_Level': 0,
+    'B_4_Level': 0,
+    'C_1_Level': 1,
 }
 
 # These stats (Crit_Dmg, Att_Power, Att_Perc, Stat) are only used if Toggle_Stuff['Hexa_Stat_Include'] is True
@@ -84,9 +84,14 @@ def ListPrint(List):
 def Fill_Boost(List,ID,Aux,Val,Start,End):
     sig_fig     = 8
     for i in range(Start,End):
-        if   ID == "A":
-            # should be adjusted to match class specific values (although most are gonna be similiar)
-            List[i]     = ((240+5*(i+1))/225 * Aux - 1) * Val
+        if   ID == "A1":
+            # should be adjusted to match class specific values (although most are gonna be similiar
+            Aux_IED = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-(0.3 + int(i/30*10)/100))*(1-.2))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-0.3)*(1-.2))
+            List[i]     = ((240+5*(i+1))/225 * Aux * Aux_IED - 1) * Val
+            # just incase I use the same name somewhere else
+            Aux_IED = 1
+        elif ID == "A2":
+            List[i]     = ((225 + 39 + 3*(i+1))/225 * Aux - 1) * Val
         elif ID == "B":
             if (i+1) < 10:
                 List[i] = round((0.11 + i*0.01) * Aux * Val,sig_fig)
@@ -421,26 +426,26 @@ def Run_Main():
         # in the original script A_1 is for Gungnir(Dark Knight) which has a IED boost component
         # The "Aux" values are multipliers that are meant to compensate for these extra features
         # if there are no auxilary features, just put 1 for the skill
-        A_1_Aux         = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-0.4)*(1-.2))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-0.3)*(1-.2))
+        A_1_Aux         = 1
         B_1_Aux         = 1
         B_2_Aux         = 1
         B_3_Aux         = 1
         B_4_Aux         = 1
         C_1_Aux         = 1
-        A_1_boost = Fill_Boost(A_1_boost,"A",A_1_Aux ,Amod_1 ,0  ,len(A_cost))
+        A_1_boost = Fill_Boost(A_1_boost,"A1",A_1_Aux ,Amod_1 ,0  ,len(A_cost))
         B_1_boost = Fill_Boost(B_1_boost,"B",B_1_Aux ,Bmod_1 ,0  ,len(B_cost))
         B_2_boost = Fill_Boost(B_2_boost,"B",B_2_Aux ,Bmod_2 ,0  ,len(B_cost))
         B_3_boost = Fill_Boost(B_3_boost,"B",B_3_Aux ,Bmod_3 ,0  ,len(B_cost))
         B_4_boost = Fill_Boost(B_4_boost,"B",B_4_Aux ,Bmod_4 ,0  ,len(B_cost))
         C_1_boost = Fill_Boost(C_1_boost,"C",C_1_Aux ,C_1    ,0  ,len(C_cost))
     else:
-        A_1_Aux         = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-0.4)*(1-.2))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-0.3)*(1-.2))
+        A_1_Aux         = 1
         B_1_Aux         = 1
         B_2_Aux         = 1
         B_3_Aux         = 1
         B_4_Aux         = 1
         C_1_Aux         = 1
-        A_1_Multi_boost = Fill_Boost(A_1_boost,"A",A_1_Aux ,1 ,0  ,len(A_cost))
+        A_1_Multi_boost = Fill_Boost(A_1_boost,"A1",A_1_Aux ,1 ,0  ,len(A_cost))
         B_1_Multi_boost = Fill_Boost(B_1_boost,"B",B_1_Aux ,1 ,0  ,len(B_cost))
         B_2_Multi_boost = Fill_Boost(B_2_boost,"B",B_2_Aux ,1 ,0  ,len(B_cost))
         B_3_Multi_boost = Fill_Boost(B_3_boost,"B",B_3_Aux ,1 ,0  ,len(B_cost))
@@ -463,7 +468,7 @@ def Run_Main():
         Bmod_4  = Revert_Bmod_4 * ( 1 + Delta_T )
         C_1     = Revert_C_1 * ( 1 + Delta_T )
         
-        A_1_boost = Fill_Boost(A_1_boost,"A",A_1_Aux ,Amod_1 ,0  ,len(A_cost))
+        A_1_boost = Fill_Boost(A_1_boost,"A1",A_1_Aux ,Amod_1 ,0  ,len(A_cost))
         B_1_boost = Fill_Boost(B_1_boost,"B",B_1_Aux ,Bmod_1 ,0  ,len(B_cost))
         B_2_boost = Fill_Boost(B_2_boost,"B",B_2_Aux ,Bmod_2 ,0  ,len(B_cost))
         B_3_boost = Fill_Boost(B_3_boost,"B",B_3_Aux ,Bmod_3 ,0  ,len(B_cost))
@@ -1036,8 +1041,10 @@ def Run_Main():
     canvas.show()
 
 First_Run = True
+
 def create_dict_gui(dictionaries, bool_vars):
     global First_Run
+
     def update_all():
         for var_name, checkbox_var in checkbox_vars.items():
             bool_vars[var_name] = checkbox_var.get()
@@ -1052,7 +1059,7 @@ def create_dict_gui(dictionaries, bool_vars):
                     pass
                 dictionary[key] = new_value
         update_display()
-        create_dict_gui([Base_Numbers, Damage_Distribution, Level_Distribution], Toggle_Stuff)
+        Run_Main()
         
     def update_display():
         # Clear the current display
@@ -1068,7 +1075,8 @@ def create_dict_gui(dictionaries, bool_vars):
             checkbox_vars[var_name] = bool_var
 
         # Display the updated dictionaries in a split layout
-        for j, (dictionary, entry_widgets) in enumerate(zip(dictionaries, entry_widgets_list)):
+        for j, (dictionary, entry_widgets) in enumerate(
+                zip(dictionaries, entry_widgets_list[-len(dictionaries):])):
             keys_frame = tk.Frame(frame)
             keys_frame.grid(row=j + len(bool_vars), column=0, padx=5, pady=5, sticky='e')
 
@@ -1080,10 +1088,11 @@ def create_dict_gui(dictionaries, bool_vars):
                 label.grid(row=k, column=0, padx=5, pady=5, sticky='e')
 
                 entry = tk.Entry(values_frame, width=10)  # Set the width here
-                entry.insert(0, str(value))
+                entry.insert(tk.END, str(value))
                 entry.grid(row=k, column=0, padx=5, pady=5, sticky='w')
 
                 entry_widgets[key] = entry
+                entry_widgets_list[dictionaries.index(dictionary)] = entry_widgets
 
         # Add "Update All" button at the bottom
         update_all_button = tk.Button(frame, text="Update All", command=update_all)
@@ -1100,11 +1109,11 @@ def create_dict_gui(dictionaries, bool_vars):
     if First_Run:
         update_display()
         First_Run = False
-    Run_Main()
 
 # Create the main window
 root = tk.Tk()
 root.title("Dictionary GUI")
 
 # Run the GUI
-create_dict_gui([Base_Numbers, Damage_Distribution, Level_Distribution], Toggle_Stuff)
+create_dict_gui([Base_Numbers, Damage_Distribution, Level_Distribution, Additional_Numbers], Toggle_Stuff)
+Run_Main()
