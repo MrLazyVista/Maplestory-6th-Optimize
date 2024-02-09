@@ -19,7 +19,7 @@ Toggle_Stuff = {
 # IED is what you see on character sheet
 # Hidden IED is IED that doesnt show up on your character page, explorer link, built into skills, debuffs, etc etc
 Base_Numbers = {
-    'Damage'    :750,
+    'Damage'    :502+78+90,
     'IED'       :96,
     'Hidden_IED':40,
     'Boss_Def'  :380
@@ -32,37 +32,37 @@ Base_Numbers = {
 # B_3 for third (Cyclone), etc etc
 # C_1 represents your Origin Skill, and how big you expect it to be (BA percentage wise)
 # A_2a, A_2b, represents the second mastery cores and the individual skills for dark knight 
-# (A_2a = impale, A_2b = Nightshade explosion, A_2c = Gungnir)
+# (A_2a = Gungnir, A_2b = Nightshade explosion, A_2c = Impale) A_2a is designed to be the same as A_1, if its not, leave it at 0 and use A_2b or A_2c instead.
 # Input an estimated BA contribution for level one if Origin is currently nonexistant
 Damage_Distribution = {
-    'A_1': 20,
-    'A_2a': 0,
+    'A_1': 20.89,
+    'A_2a': 20.89,
     'A_2b': 0,
-    'A_2c': 20,
-    'B_1': 25,
-    'B_2': 17,
-    'B_3': 15,
-    'B_4': 8,
-    'C_1': 7.91,
+    'A_2c': 0,
+    'B_1': 27.08,
+    'B_2': 18.26,
+    'B_3': 12.84,
+    'B_4': 4.42,
+    'C_1': 7.28,
 }
 
 # Current Skill Levels (6th Core)
 Level_Distribution = {
-    'A_1_Level': 0,
+    'A_1_Level': 19,
     'A_2_Level': 0,
-    'B_1_Level': 0,
-    'B_2_Level': 0,
-    'B_3_Level': 0,
-    'B_4_Level': 0,
-    'C_1_Level': 0,
+    'B_1_Level': 10,
+    'B_2_Level': 10,
+    'B_3_Level': 10,
+    'B_4_Level': 1,
+    'C_1_Level': 9,
 }
 
 # These stats (Crit_Dmg, Att_Power, Att_Perc, Stat) are only used if Toggle_Stuff['Hexa_Stat_Include'] is True
 Additional_Numbers = {
-    'Crit_Dmg'  :148,
-    'Att_Power' :8434,
-    'Att_Perc'  :142,
-    'Stat'      :75027
+    'Crit_Dmg'  :141.4,
+    'Att_Power' :9076,
+    'Att_Perc'  :145,
+    'Stat'      :81500
     }
 
 # Hexa_Stat_ Main/Alt values are only used if Toggle_Stuff['Hexa_Maxed'] is True, uses a [level,Stat] format, use the following strings of "Stat"
@@ -97,11 +97,11 @@ def Fill_Boost(List,ID,Aux,Val,Start,End):
             # just incase I use the same name somewhere else
             Aux_IED = 1
         elif ID == "A2a":   
-            List[i]   = ((298 + 9*(i+1))/280 * Aux - 1) * Val
+            List[i]   = ((225 + 55 + 3*(i+1))/225 * Aux - 1) * Val
         elif ID == "A2b":   
             List[i]   = ((354 + 8*(i+1))/330 * Aux - 1) * Val
         elif ID == "A2c":   
-            List[i]   = ((225 + 55 + 3*(i+1))/225 * Aux - 1) * Val
+            List[i]   = ((298 + 9*(i+1))/280 * Aux - 1) * Val
         elif ID == "B":
             if (i+1) < 10:
                 List[i] = round((0.11 + i*0.01) * Aux * Val,sig_fig)
@@ -171,6 +171,17 @@ def Reverter(Value,Level,List):
     B = Value / A
     C = Value - B
     return B, C
+    
+def Reverter_Multi(Value,Level_a,List_a,Level_b,List_b):
+    A = 1
+    if Level_a > 0:
+        A = 1 + List_a[Level_a-1]
+        if Level_b > 0:
+            A += List_b[Level_b-1]
+    B = Value / A
+    C = Value - B
+    return B, C
+
 
 def GiveMeCleanValues(Main,Current,Level,Type):
     Clean_Value = 0
@@ -462,6 +473,12 @@ def Run_Main():
         B_3_boost = Fill_Boost(B_3_boost,"B",B_3_Aux ,Bmod_3 ,0  ,len(B_cost))
         B_4_boost = Fill_Boost(B_4_boost,"B",B_4_Aux ,Bmod_4 ,0  ,len(B_cost))
         C_1_boost = Fill_Boost(C_1_boost,"C",C_1_Aux ,Damage_Distribution['C_1']    ,0  ,len(C_cost))
+        print('A_1 Base :' + str(round(Amod_1,5)))
+        print('B_1 Base :' + str(round(Bmod_1,5)))
+        print('B_2 Base :' + str(round(Bmod_2,5)))
+        print('B_3 Base :' + str(round(Bmod_3,5)))
+        print('B_4 Base :' + str(round(Bmod_4,5)))
+        print('C_1 Base :' + str(round(C_1,5)))
     else:
     # where i left off ------------------------------------------
         A_1_Aux         = 1
@@ -481,8 +498,7 @@ def Run_Main():
         B_4_Multi_boost = Fill_Boost(B_4_boost,"B",B_4_Aux ,1 ,0  ,len(B_cost))
         C_1_Multi_boost = Fill_Boost(C_1_boost,"C",C_1_Aux ,1 ,0  ,len(C_cost))
         C_1_Multi_boost = [x - C_1_Multi_boost[0] for x in C_1_Multi_boost]
-        Revert_Amod_1,Delta_A_1  = Reverter(Damage_Distribution['A_1'],Level_Distribution['A_1_Level'],A_1_Multi_boost)
-        Revert_Amod_2a,Delta_A_2a  = Reverter(Damage_Distribution['A_2a'],Level_Distribution['A_2_Level'],A_2a_Multi_boost)
+        Revert_Amod_1,Delta_A_1  = Reverter_Multi(Damage_Distribution['A_1'],Level_Distribution['A_1_Level'],A_1_Multi_boost,Level_Distribution['A_2_Level'],A_2a_Multi_boost)
         Revert_Amod_2b,Delta_A_2b  = Reverter(Damage_Distribution['A_2b'],Level_Distribution['A_2_Level'],A_2b_Multi_boost)
         Revert_Amod_2c,Delta_A_2c  = Reverter(Damage_Distribution['A_2c'],Level_Distribution['A_2_Level'],A_2c_Multi_boost)
         Revert_Bmod_1,Delta_B_1  = Reverter(Damage_Distribution['B_1'],Level_Distribution['B_1_Level'],B_1_Multi_boost) 
@@ -491,10 +507,9 @@ def Run_Main():
         Revert_Bmod_4,Delta_B_4  = Reverter(Damage_Distribution['B_4'],Level_Distribution['B_4_Level'],B_4_Multi_boost)
         Revert_C_1   ,Delta_C_1  = Reverter(Damage_Distribution['C_1'],Level_Distribution['C_1_Level'],C_1_Multi_boost)
             
-        Delta_T = Delta_A_1 + Delta_A_2a + Delta_A_2b + Delta_A_2c + Delta_B_1 + Delta_B_2 + Delta_B_3 + Delta_B_4 + Delta_C_1
+        Delta_T = Delta_A_1 + Delta_A_2b + Delta_A_2c + Delta_B_1 + Delta_B_2 + Delta_B_3 + Delta_B_4 + Delta_C_1
         
         Amod_1  = Revert_Amod_1 * ( 1 + Delta_T )
-        Amod_2a  = Revert_Amod_2a * ( 1 + Delta_T )
         Amod_2b  = Revert_Amod_2b * ( 1 + Delta_T )
         Amod_2c  = Revert_Amod_2c * ( 1 + Delta_T )
         Bmod_1  = Revert_Bmod_1 * ( 1 + Delta_T )
@@ -504,7 +519,7 @@ def Run_Main():
         C_1     = Revert_C_1 * ( 1 + Delta_T )
         
         A_1_boost = Fill_Boost(A_1_boost,"A1",A_1_Aux ,Amod_1 ,0  ,len(A_cost))
-        A_2a_boost = Fill_Boost(A_2a_boost,"A2a",A_2_Aux ,Amod_2a ,0  ,len(A_cost))
+        A_2a_boost = Fill_Boost(A_2a_boost,"A2a",A_2_Aux ,Amod_1 ,0  ,len(A_cost))
         A_2b_boost = Fill_Boost(A_2b_boost,"A2b",A_2_Aux ,Amod_2b ,0  ,len(A_cost))
         A_2c_boost = Fill_Boost(A_2c_boost,"A2c",A_2_Aux ,Amod_2c ,0  ,len(A_cost))
         A_2_boost = [sum(values) for values in zip(A_2a_boost,A_2b_boost,A_2c_boost)]
@@ -513,6 +528,13 @@ def Run_Main():
         B_3_boost = Fill_Boost(B_3_boost,"B",B_3_Aux ,Bmod_3 ,0  ,len(B_cost))
         B_4_boost = Fill_Boost(B_4_boost,"B",B_4_Aux ,Bmod_4 ,0  ,len(B_cost))
         C_1_boost = Fill_Boost(C_1_boost,"C",C_1_Aux ,Damage_Distribution['C_1']    ,0  ,len(C_cost))
+
+        print('A_1 Base :' + str(round(Amod_1,5)))
+        print('B_1 Base :' + str(round(Bmod_1,5)))
+        print('B_2 Base :' + str(round(Bmod_2,5)))
+        print('B_3 Base :' + str(round(Bmod_3,5)))
+        print('B_4 Base :' + str(round(Bmod_4,5)))
+        print('C_1 Base :' + str(round(C_1,5)))
 
     # input initial boost and cost values
     if Level_Distribution['A_1_Level'] != 0:
