@@ -12,7 +12,7 @@ import tkinter as tk
 Toggle_Stuff = {
     'Frag_Base'         :True,
     'Hexa_Stat_Include' :True,
-    'Hexa_Maxed'        :False
+    'Hexa_Maxed'        :True
     }
 # Use decimal values 98% = 0.98, 612% = 6.12, etc etc
 # Damage is Boss% + Damage%,
@@ -67,9 +67,9 @@ Additional_Numbers = {
 
 # Hexa_Stat_ Main/Alt values are only used if Toggle_Stuff['Hexa_Maxed'] is True, uses a [level,Stat] format, use the following strings of "Stat"
 # 'Crit Damage','Boss Damage','Ignore Def','Reg Damage','Attack','Stat'
-Hexa_Stat_Main  = [4 , 'Boss Damage']
-Hexa_Stat_Alt_0 = [8 , 'Attack']
-Hexa_Stat_Alt_1 = [8 , 'Stat']
+Hexa_Stat_Main  = [6 , 'Stat']
+Hexa_Stat_Alt_0 = [10, 'Attack']
+Hexa_Stat_Alt_1 = [4 , 'Crit Damage']
 
 ## VERY IMPORTANT TO FILL BOXES (DAMAGE, IED, BOSS_DEF, A_1 ..... Level_Distribution['C_1_Level'])
 ## VERY IMPORTANT TO FILL BOXES (DAMAGE, IED, BOSS_DEF, A_1 ..... Level_Distribution['C_1_Level'])
@@ -183,7 +183,7 @@ def Reverter_Multi(Value,Level_a,List_a,Level_b,List_b):
     return B, C
 
 
-def GiveMeCleanValues(Main,Current,Level,Type):
+def GiveMeCleanValues(Main,Stat_Values,Main_Multi,Alt_Multi,Current,Level,Type):
     Clean_Value = 0
     if Main == True:
         if Type == 'Ignore Def':
@@ -730,9 +730,9 @@ def Run_Main():
                 Stat_dict_tag_Alt_1 = Hexa_Stat_Alt_1[1]
                 
             # if hexa stats are already being used, then we need to recover the unmodified values
-            Stat_dict[Stat_dict_tag_Main] = GiveMeCleanValues(True,Stat_dict.get(Stat_dict_tag_Main),Hexa_Stat_Main[0],Hexa_Stat_Main[1])
-            Stat_dict[Stat_dict_tag_Alt_0] = GiveMeCleanValues(False,Stat_dict.get(Stat_dict_tag_Alt_0),Hexa_Stat_Alt_0[0],Hexa_Stat_Alt_0[1])
-            Stat_dict[Stat_dict_tag_Alt_1] = GiveMeCleanValues(False,Stat_dict.get(Stat_dict_tag_Alt_1),Hexa_Stat_Alt_1[0],Hexa_Stat_Alt_1[1])
+            Stat_dict[Stat_dict_tag_Main] = GiveMeCleanValues(True,Stat_Values,Main_Multi,Alt_Multi,Stat_dict.get(Stat_dict_tag_Main),Hexa_Stat_Main[0],Hexa_Stat_Main[1])
+            Stat_dict[Stat_dict_tag_Alt_0] = GiveMeCleanValues(False,Stat_Values,Main_Multi,Alt_Multi,Stat_dict.get(Stat_dict_tag_Alt_0),Hexa_Stat_Alt_0[0],Hexa_Stat_Alt_0[1])
+            Stat_dict[Stat_dict_tag_Alt_1] = GiveMeCleanValues(False,Stat_Values,Main_Multi,Alt_Multi,Stat_dict.get(Stat_dict_tag_Alt_1),Hexa_Stat_Alt_1[0],Hexa_Stat_Alt_1[1])
 
         # print(Stat_dict)
         Crit_Main_Mod = (Stat_Values['Crit Damage'] + 1 + Stat_dict['Crit Damage'] + (0.2 + 0.5)/2) / (1 + Stat_dict['Crit Damage'] + (0.2 + 0.5)/2)
