@@ -35,26 +35,26 @@ Base_Numbers = {
 # (A_2a = Gungnir, A_2b = Nightshade explosion, A_2c = Impale) A_2a is designed to be the same as A_1, if its not, leave it at 0 and use A_2b or A_2c instead.
 # Input an estimated BA contribution for level one if Origin is currently nonexistant
 Damage_Distribution = {
-    'A_1': 20.89,
-    'A_2a': 20.89,
-    'A_2b': 0,
+    'A_1': 16.784,
+    'A_2a': 16.784,
+    'A_2b': 2.00,
     'A_2c': 0,
-    'B_1': 27.08,
-    'B_2': 18.26,
-    'B_3': 12.84,
-    'B_4': 4.42,
-    'C_1': 7.28,
+    'B_1': 26.122,
+    'B_2': 17.614,
+    'B_3': 12.386,
+    'B_4': 4.801,
+    'C_1': 6.93,
 }
 
 # Current Skill Levels (6th Core)
 Level_Distribution = {
-    'A_1_Level': 19,
+    'A_1_Level': 0,
     'A_2_Level': 0,
-    'B_1_Level': 10,
-    'B_2_Level': 10,
-    'B_3_Level': 10,
-    'B_4_Level': 1,
-    'C_1_Level': 9,
+    'B_1_Level': 0,
+    'B_2_Level': 0,
+    'B_3_Level': 0,
+    'B_4_Level': 0,
+    'C_1_Level': 1,
 }
 
 # These stats (Crit_Dmg, Att_Power, Att_Perc, Stat) are only used if Toggle_Stuff['Hexa_Stat_Include'] is True
