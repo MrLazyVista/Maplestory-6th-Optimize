@@ -92,14 +92,18 @@ def Fill_Boost(List,ID,Aux,Val,Start,End):
     for i in range(Start,End):
         if   ID == "A1":
             # should be adjusted to match class specific values (although most are gonna be similiar
-            Aux_IED = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-(0.3 + int(i/30*10)/100))*(1-.2))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-0.3)*(1-.2))
+            Aux_IED     = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-(0.3 + int(i/30*10)/100))*(1-.2))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-0.3)*(1-.2))
             List[i]     = ((225 + 15 +5*(i+1))/225 * Aux * Aux_IED - 1) * Val
             # just incase I use the same name somewhere else
             Aux_IED = 1
         elif ID == "A2a":   
             List[i]   = ((225 + 55 + 3*(i+1))/225 * Aux - 1) * Val
-        elif ID == "A2b":   
-            List[i]   = ((354 + 8*(i+1))/330 * Aux - 1) * Val
+        elif ID == "A2b":
+            Aux_IED   = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-0.6))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED']))
+            Aux_Boss  = (1 + Base_Numbers['Damage'] + .3) / (1 + Base_Numbers['Damage'])
+            List[i]   = (((340 + 8*(i+1))*12/10)/330 * Aux * Aux_IED * Aux_Boss - 1) * Val
+            Aux_IED   = 1
+            Aux_Boss  = 1
         elif ID == "A2c":   
             List[i]   = ((298 + 9*(i+1))/280 * Aux - 1) * Val
         elif ID == "B":
