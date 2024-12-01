@@ -14,6 +14,7 @@ Toggle_Stuff = {
     'Hexa_Stat_Include' :True,
     'Hexa_Maxed'        :False
     }
+    
 # Use decimal values 98% = 0.98, 612% = 6.12, etc etc
 # Damage is Boss% + Damage%,
 # IED is what you see on character sheet
@@ -35,15 +36,15 @@ Base_Numbers = {
 # (A_2a = Gungnir, A_2b = Nightshade explosion, A_2c = Impale) A_2a is designed to be the same as A_1, if its not, leave it at 0 and use A_2b or A_2c instead.
 # Input an estimated BA contribution for level one if Origin is currently nonexistant
 Damage_Distribution = {
-    'A_1': 20,
-    'A_2a': 20,
-    'A_2b': 5.00,
+    'A_1': 20.75,
+    'A_2a': 20.75,
+    'A_2b': 3.14,
     'A_2c': 0,
-    'B_1': 24,
-    'B_2': 18,
-    'B_3': 15,
-    'B_4': 6,
-    'C_1': 8,
+    'B_1': 22.31,
+    'B_2': 16.82,
+    'B_3': 10.89,
+    'B_4': 7.90,
+    'C_1': 6.49,
 }
 
 # Current Skill Levels (6th Core)
@@ -91,7 +92,7 @@ def Fill_Boost(List,ID,Aux,Val,Start,End):
         elif ID == "A2b":
             Aux_IED   = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-0.6))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED']))
             Aux_Boss  = (1 + Base_Numbers['Damage'] + .3) / (1 + Base_Numbers['Damage'])
-            List[i]   = (((340 + 8*(i+1))*12/10)/330 * Aux * Aux_IED * Aux_Boss - 1) * Val
+            List[i]   = (((390 + 12*(i+1))*12/10)/400 * Aux * Aux_IED * Aux_Boss - 1) * Val
             Aux_IED   = 1
             Aux_Boss  = 1
         elif ID == "A2c":   
@@ -477,13 +478,13 @@ def Run_Main():
         B_3_boost = Fill_Boost(B_3_boost,"B",B_3_Aux ,Bmod_3 ,0  ,len(B_cost))
         B_4_boost = Fill_Boost(B_4_boost,"B",B_4_Aux ,Bmod_4 ,0  ,len(B_cost))
         C_1_boost = Fill_Boost(C_1_boost,"C",C_1_Aux ,Damage_Distribution['C_1']    ,0  ,len(C_cost))
-#        print('A_1 Base :' + str(round(Amod_1,5)))
-#        print('A_2b Base :' + str(round(Amod_2b,5)))
-#        print('B_1 Base :' + str(round(Bmod_1,5)))
-#        print('B_2 Base :' + str(round(Bmod_2,5)))
-#        print('B_3 Base :' + str(round(Bmod_3,5)))
-#        print('B_4 Base :' + str(round(Bmod_4,5)))
-#        print('C_1 Base :' + str(round(C_1,5)))
+        print('A_1 Base :' + str(round(Amod_1,5)))
+        print('A_2b Base :' + str(round(Amod_2b,5)))
+        print('B_1 Base :' + str(round(Bmod_1,5)))
+        print('B_2 Base :' + str(round(Bmod_2,5)))
+        print('B_3 Base :' + str(round(Bmod_3,5)))
+        print('B_4 Base :' + str(round(Bmod_4,5)))
+        print('C_1 Base :' + str(round(C_1,5)))
     else:
     # where i left off ------------------------------------------
         A_1_Aux         = 1
@@ -534,13 +535,13 @@ def Run_Main():
         B_4_boost = Fill_Boost(B_4_boost,"B",B_4_Aux ,Bmod_4 ,0  ,len(B_cost))
         C_1_boost = Fill_Boost(C_1_boost,"C",C_1_Aux ,Damage_Distribution['C_1']    ,0  ,len(C_cost))
 
-#        print('A_1 Base :' + str(round(Amod_1,5)))
-#        print('A_2b Base :' + str(round(Amod_2b,5)))
-#        print('B_1 Base :' + str(round(Bmod_1,5)))
-#        print('B_2 Base :' + str(round(Bmod_2,5)))
-#        print('B_3 Base :' + str(round(Bmod_3,5)))
-#        print('B_4 Base :' + str(round(Bmod_4,5)))
-#        print('C_1 Base :' + str(round(C_1,5)))
+        print('A_1 Base :' + str(round(Amod_1,5)))
+        print('A_2b Base :' + str(round(Amod_2b,5)))
+        print('B_1 Base :' + str(round(Bmod_1,5)))
+        print('B_2 Base :' + str(round(Bmod_2,5)))
+        print('B_3 Base :' + str(round(Bmod_3,5)))
+        print('B_4 Base :' + str(round(Bmod_4,5)))
+        print('C_1 Base :' + str(round(C_1,5)))
 
 #        for i in range(len(C_1_boost)):
 #            print(C_1_boost[i])
