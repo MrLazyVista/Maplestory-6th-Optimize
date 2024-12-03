@@ -589,6 +589,10 @@ def Run_Main():
     print('Total Resources Spent     : ' + str(round(sum(CostArray.values()),0)))
     print('')
 
+    A_1_was_0 = False
+    if Level_Distribution['A_1_Level'] == 0:
+        A_1_was_0 = True
+        
     # print(Amod_1,Bmod_1,Bmod_2,Bmod_3,Bmod_4,C_1)
     while Level_Distribution['A_1_Level'] != 30 or Level_Distribution['A_2_Level'] != 30 or Level_Distribution['B_1_Level'] != 30 or Level_Distribution['B_2_Level'] != 30 or Level_Distribution['B_3_Level'] != 30 or Level_Distribution['B_4_Level'] != 30 or Level_Distribution['C_1_Level'] != 30:
         A_1_Delta_boost = ListSubtractConstant(A_1_boost,Level_Distribution['A_1_Level'])
@@ -931,7 +935,7 @@ def Run_Main():
             Final_List = sorted(Final_List, key=lambda x: x[1], reverse = True)
 #    ListPrint(Final_List)
 
-    if Toggle_Stuff['Force_A1_Before_A2'] == True:
+    if Toggle_Stuff['Force_A1_Before_A2'] == True and A_1_was_0 == True:
         # Check if A_1 occurs first
         for i in range(len(Final_List)):
             if Final_List[i][2] == 'A_1':
@@ -944,7 +948,7 @@ def Run_Main():
                     if Final_List[j][2] == 'A_1':
                         First_A_1 = j
                         break
-                        
+                
                 Final_List.insert(i,Final_List[First_A_1])
                 del Final_List[First_A_1+1]
                 break
