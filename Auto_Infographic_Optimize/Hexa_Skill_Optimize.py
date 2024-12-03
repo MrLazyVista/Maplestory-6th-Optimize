@@ -12,7 +12,8 @@ import tkinter as tk
 Toggle_Stuff = {
     'Frag_Base'         :True,
     'Hexa_Stat_Include' :True,
-    'Hexa_Maxed'        :False
+    'Hexa_Maxed'        :False,
+    'Force_A1_Before_A2':True,
     }
     
 # Use decimal values 98% = 0.98, 612% = 6.12, etc etc
@@ -687,6 +688,8 @@ def Run_Main():
         MegaList[0].append(BoostArraySum)
         MegaList[0].append(CostArraySum)
         Final_List.append(MegaList[0])
+    
+    ListPrint(Final_List)
 
     if Toggle_Stuff['Hexa_Stat_Include'] == True:
         Average_Costs = [
@@ -928,6 +931,24 @@ def Run_Main():
             Final_List = sorted(Final_List, key=lambda x: x[1], reverse = True)
 #    ListPrint(Final_List)
 
+    if Toggle_Stuff['Force_A1_Before_A2'] == True:
+        # Check if A_1 occurs first
+        for i in range(len(Final_List)):
+            if Final_List[i][2] == 'A_1':
+                # A_1 occured first, continue on
+                break
+            elif Final_List[i][2] == 'A_2':
+                # A_2 occured first, insert A_1 level 1 before A_2 then break
+                First_A_1 = 0
+                for j in range(len(Final_List)):
+                    if Final_List[j][2] == 'A_1':
+                        First_A_1 = j
+                        break
+                        
+                Final_List.insert(i,Final_List[First_A_1])
+                del Final_List[First_A_1+1]
+                break
+            
     # merge any consecutive patterns A_1 [0,1,2,3,4,5] -> A_1 [5]
     Compressed_Final_List = [Final_List[0]]  # Initialize with the first element
     for i in range(1, len(Final_List)):
