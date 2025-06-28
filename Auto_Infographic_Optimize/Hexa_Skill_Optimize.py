@@ -115,7 +115,7 @@ def Fill_Boost(List,ID,Aux,Val,Start,End):
         elif ID == "A3a":   
             List[i]   = ((88 + 2*(i+1))/88 * Aux - 1) * Val
         elif ID == "A3b":   
-            List[i]   = ((133 + 3*(i+1))/143 * Aux - 1) * Val
+            List[i]   = ((143 + 3*(i+1))/143 * Aux - 1) * Val
         elif ID == "A3c":
             Proc_Per  = (40+(i+1)*25/30)/40
             List[i]   = (Proc_Per*(87 + 1*(i+1))/80 * Aux - 1) * Val
