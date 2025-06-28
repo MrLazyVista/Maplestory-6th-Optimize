@@ -22,8 +22,8 @@ Toggle_Stuff = {
 # IED is what you see on character sheet
 # Hidden IED is IED that doesnt show up on your character page, explorer link, built into skills, debuffs, etc etc
 Base_Numbers = {
-    'Damage'    :502+78+90,
-    'IED'       :96,
+    'Damage'    :487+90+80,
+    'IED'       :97,
     'Hidden_IED':40,
     'Boss_Def'  :380
     }
@@ -75,10 +75,10 @@ Level_Distribution = {
 
 # These stats (Crit_Dmg, Att_Power, Att_Perc, Stat) are only used if Toggle_Stuff['Hexa_Stat_Include'] is True
 Additional_Numbers = {
-    'Crit_Dmg'  :141.4,
-    'Att_Power' :9076,
-    'Att_Perc'  :145,
-    'Stat'      :81500
+    'Crit_Dmg'  :130 + 30,
+    'Att_Power' :7605,
+    'Att_Perc'  :97,
+    'Stat'      :74000
     }
 
 # Hexa_Stat_ Main/Alt values are only used if Toggle_Stuff['Hexa_Maxed'] is True, uses a [level,Stat] format, use the following strings of "Stat"
@@ -1166,7 +1166,7 @@ def Run_Main():
     ListPrint(Compressed_Final_List)
     # printing stuff
 
-    grid_width, grid_height = 11, 4  # You can adjust these dimensions as needed
+    grid_width, grid_height = 12, 4  # You can adjust these dimensions as needed
     spacing = 20
 
     # Calculate the size of each image and the spacing
