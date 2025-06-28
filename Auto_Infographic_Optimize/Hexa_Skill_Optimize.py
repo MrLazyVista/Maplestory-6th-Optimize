@@ -4,6 +4,12 @@ import copy
 import numpy
 import tkinter as tk
 
+# If you want to customize the code to a class that isnt Dark Knight 
+# 1. Make the mastery skill percentages match your class
+# 2. Ctrl + F "def Fill_Boost" change the skill percentages to match the mastery numbers
+# 3. Ctrl + F "Reverter_Multi(Damage_Distribution" and use Reverter for skills that dont have multiple masteries affecting them, and multi version for those that do
+# 4. Replace the skill .png in the folder this python code is in
+
 ## VERY IMPORTANT TO FILL BOXES (DAMAGE, IED, BOSS_DEF, A_1 ..... Level_Distribution['C_1_Level'])
 ## VERY IMPORTANT TO FILL BOXES (DAMAGE, IED, BOSS_DEF, A_1 ..... Level_Distribution['C_1_Level'])
 ## VERY IMPORTANT TO FILL BOXES (DAMAGE, IED, BOSS_DEF, A_1 ..... Level_Distribution['C_1_Level'])
@@ -17,26 +23,22 @@ Toggle_Stuff = {
     'ForceMasteryA1234' :True,
     }
     
-# Use decimal values 98% = 0.98, 612% = 6.12, etc etc
+# Use percentage values 98% = 98, 612% = 612, etc etc
 # Damage is Boss% + Damage%,
 # IED is what you see on character sheet
 # Hidden IED is IED that doesnt show up on your character page, explorer link, built into skills, debuffs, etc etc
 Base_Numbers = {
-    'Damage'    :487+90+80,
+    'Damage'    :500+90+80,
     'IED'       :97,
     'Hidden_IED':40,
     'Boss_Def'  :380
     }
 
-# Before Origin BA values (use fraction values 0.25, 0.5, 0.1, etc etc)
-# A_1 represents the BA contribute of your 4th job skill that is boosted
-# B_1 means your first 5th job skill (Spear for ex)
-# B_2 for the second 5th job skill (Radiant Evil)
-# B_3 for third (Cyclone), etc etc
-# C_1 represents your Origin Skill, and how big you expect it to be (BA percentage wise)
-# A_2a, A_2b, represents the second mastery cores and the individual skills for dark knight 
-# (A_2a = Gungnir, A_2b = Nightshade explosion, A_2c = Impale) A_2a is designed to be the same as A_1, if its not, leave it at 0 and use A_2b or A_2c instead.
-# Input an estimated BA contribution for level one if Origin is currently nonexistant
+# Fill out your Battle Analysis Contributions in this table and dont forget the levels as well
+# Use percentage values 15% = 15, same as above.
+# A skills are "Mastery Skills", B Skills are Reinforcements, C Skills are Origin Skills
+# Some mastery skills have overlapping skills, thats why you see the "Damage_Distribution['A_1']"
+
 Damage_Distribution = {}
 Damage_Distribution['A_1']  = 14.99                             # Gungnir
 
@@ -76,7 +78,7 @@ Level_Distribution = {
 # These stats (Crit_Dmg, Att_Power, Att_Perc, Stat) are only used if Toggle_Stuff['Hexa_Stat_Include'] is True
 Additional_Numbers = {
     'Crit_Dmg'  :130 + 30,
-    'Att_Power' :7605,
+    'Att_Power' :7000,
     'Att_Perc'  :97,
     'Stat'      :74000
     }
