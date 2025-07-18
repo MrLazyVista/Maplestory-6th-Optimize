@@ -17,7 +17,7 @@ import tkinter as tk
 # Energy based optimization Toggle_Stuff['Frag_Base'] = False
 # Optimize for rerolling Hexa Core = True
 Toggle_Stuff = {
-    'Frag_Base'         :True,
+    'Frag_Base'         :False,
     'Hexa_Stat_Include' :True,
     'Hexa_Maxed'        :False,
     'ForceMasteryA1234' :True,
@@ -40,27 +40,27 @@ Base_Numbers = {
 # Some mastery skills have overlapping skills, thats why you see the "Damage_Distribution['A_1']"
 
 Damage_Distribution = {}
-Damage_Distribution['A_1']  = 14.99                             # Gungnir
+Damage_Distribution['A_1']  = 16.37                             # Gungnir
 
 Damage_Distribution['A_2a'] = Damage_Distribution['A_1']        # Also Gungnir
-Damage_Distribution['A_2b'] = 3.16                              # Nightshade
+Damage_Distribution['A_2b'] = 2.29                              # Nightshade
 Damage_Distribution['A_2c'] = 0                                 # Impale
 
-Damage_Distribution['A_3a'] = 7.52                              # EE Revenge
-Damage_Distribution['A_3b'] = 2.01                              # EE Punishment
-Damage_Distribution['A_3c'] = 1.75                              # Final Attack
+Damage_Distribution['A_3a'] = 5.73                              # EE Revenge
+Damage_Distribution['A_3b'] = 1.45                              # EE Punishment
+Damage_Distribution['A_3c'] = 1.38                              # Final Attack
 
-Damage_Distribution['A_4a'] = 3.96                              # EE Shock
+Damage_Distribution['A_4a'] = 6.61                              # EE Shock
 Damage_Distribution['A_4b'] = Damage_Distribution['A_2b']       # Nightshade
 Damage_Distribution['A_4c'] = Damage_Distribution['A_3a']       # EE Revenge
 Damage_Distribution['A_4d'] = Damage_Distribution['A_3b']       # EE Punishment
 
-Damage_Distribution['B_1'] = 22.00                              # Soear
-Damage_Distribution['B_2'] = 9.83                               # Radiant
-Damage_Distribution['B_3'] = 8.33                               # Cyclone
-Damage_Distribution['B_4'] = 6.85                               # Darkness Aura
+Damage_Distribution['B_1'] = 16.07                              # Soear
+Damage_Distribution['B_2'] = 7.55                               # Radiant
+Damage_Distribution['B_3'] = 8.23                               # Cyclone
+Damage_Distribution['B_4'] = 5.78                               # Darkness Aura
 
-Damage_Distribution['C_1'] = 5.45                               # Dead Space
+Damage_Distribution['C_1'] = 4.85                               # Dead Space
 
 # Current Skill Levels (6th Core)
 Level_Distribution = {
@@ -489,6 +489,9 @@ def Run_Main():
     Final_List  = []
     C_1_Changed = False
 
+    if Level_Distribution['A_1_Level'] > 0 and Level_Distribution['A_2_Level'] > 0 and Level_Distribution['A_3_Level'] > 0 and Level_Distribution['A_4_Level'] > 0:
+        Toggle_Stuff["ForceMasteryA1234"] = False
+
     # Mod Values are the skill BA contributions if there were no 6th progress except for origin(makes the math simplier)
     # if Level_Distribution['C_1_Level'] = 0 then that means you got a naked skill tree so everything is by default 0
     # if C_1 does not equal zero then, some conversions will have to be done
@@ -625,8 +628,23 @@ def Run_Main():
         Revert_Bmod_4,Delta_B_4  = Reverter(Damage_Distribution['B_4'],Level_Distribution['B_4_Level'],B_4_Multi_boost)
         Revert_C_1   ,Delta_C_1  = Reverter(Damage_Distribution['C_1'],Level_Distribution['C_1_Level'],C_1_Multi_boost)
             
-        Delta_T = Delta_A_1 + Delta_A_2a + Delta_A_2b + Delta_A_2c + Delta_A_3a + Delta_A_3b + Delta_A_3c + Delta_A_4a + Delta_A_4b + Delta_A_4c + Delta_A_4d + Delta_B_1 + Delta_B_2 + Delta_B_3 + Delta_B_4 + Delta_C_1
+        Delta_T = Delta_A_1 + Delta_A_2b + Delta_A_2c + Delta_A_3a + Delta_A_3b + Delta_A_3c + Delta_A_4a + Delta_B_1 + Delta_B_2 + Delta_B_3 + Delta_B_4 + Delta_C_1
         
+        for i in range(len(A_1_Multi_boost)):
+            print(str(i) + ":" + str(A_4a_Multi_boost[i]))
+        print("")
+        print('Delta_A_1: '  + str(Revert_Amod_1) + ' : ' + str(Delta_A_1 ) + ' : ')
+        print('Delta_A_2a: ' + str(Revert_Amod_2a) + ' : ' + str(Delta_A_2a) + ' : ')
+        print('Delta_A_2b: ' + str(Revert_Amod_2b) + ' : ' + str(Delta_A_2b) + ' : ')
+        print('Delta_A_2c: ' + str(Revert_Amod_2c) + ' : ' + str(Delta_A_2c) + ' : ')
+        print('Delta_A_3a: ' + str(Revert_Amod_3a) + ' : ' + str(Delta_A_3a) + ' : ')
+        print('Delta_A_3b: ' + str(Revert_Amod_3b) + ' : ' + str(Delta_A_3b) + ' : ')
+        print('Delta_A_3c: ' + str(Revert_Amod_3c) + ' : ' + str(Delta_A_3c) + ' : ')
+        print('Delta_A_4a: ' + str(Revert_Amod_4a) + ' : ' + str(Delta_A_4a) + ' : ')
+        print('Delta_A_4b: ' + str(Revert_Amod_4b) + ' : ' + str(Delta_A_4b) + ' : ')
+        print('Delta_A_4c: ' + str(Revert_Amod_4c) + ' : ' + str(Delta_A_4c) + ' : ')
+        print('Delta_A_4d: ' + str(Revert_Amod_4d) + ' : ' + str(Delta_A_4d) + ' : ')
+        print('Delta_Sum : ' + str(Delta_T))
         Amod_1  = Revert_Amod_1 * ( 1 + Delta_T )
         Amod_2a  = Revert_Amod_2a * ( 1 + Delta_T )
         Amod_2b  = Revert_Amod_2b * ( 1 + Delta_T )
@@ -655,14 +673,12 @@ def Run_Main():
         A_3b_boost = Fill_Boost(A_3b_boost,"A3b",A_3_Aux ,Amod_3b ,0  ,len(A_cost))
         A_3c_boost = Fill_Boost(A_3c_boost,"A3c",A_3_Aux ,Amod_3c ,0  ,len(A_cost))
         A_3_boost = [sum(values) for values in zip(A_3a_boost,A_3b_boost,A_3c_boost)]
-        print(A_3_boost[29])
 
         A_4a_boost = Fill_Boost(A_4a_boost,"A4a",A_4_Aux ,Amod_4a ,0  ,len(A_cost))
         A_4b_boost = Fill_Boost(A_4b_boost,"A4b",A_4_Aux ,Amod_4b ,0  ,len(A_cost))
         A_4c_boost = Fill_Boost(A_4c_boost,"A4c",A_4_Aux ,Amod_4c ,0  ,len(A_cost))
         A_4d_boost = Fill_Boost(A_4d_boost,"A4d",A_4_Aux ,Amod_4d ,0  ,len(A_cost))
         A_4_boost = [sum(values) for values in zip(A_4a_boost,A_4b_boost,A_4c_boost,A_4d_boost)]
-        print(A_4_boost[29])
         
         B_1_boost = Fill_Boost(B_1_boost,"B",B_1_Aux ,Bmod_1 ,0  ,len(B_cost))
         B_2_boost = Fill_Boost(B_2_boost,"B",B_2_Aux ,Bmod_2 ,0  ,len(B_cost))
@@ -748,7 +764,7 @@ def Run_Main():
         First_A_4 = 0
     
     # print(Amod_1,Bmod_1,Bmod_2,Bmod_3,Bmod_4,C_1)
-    while Level_Distribution['A_1_Level'] != 30 or Level_Distribution['A_2_Level'] != 30 or Level_Distribution['B_1_Level'] != 30 or Level_Distribution['B_2_Level'] != 30 or Level_Distribution['B_3_Level'] != 30 or Level_Distribution['B_4_Level'] != 30 or Level_Distribution['C_1_Level'] != 30:
+    while not all(value == 30 for value in Level_Distribution.values()):
         A_1_Delta_boost = ListSubtractConstant(A_1_boost,Level_Distribution['A_1_Level'])
         A_2_Delta_boost = ListSubtractConstant(A_2_boost,Level_Distribution['A_2_Level'])
         A_3_Delta_boost = ListSubtractConstant(A_3_boost,Level_Distribution['A_3_Level'])
