@@ -17,7 +17,7 @@ import tkinter as tk
 # Energy based optimization Toggle_Stuff['Frag_Base'] = False
 # Optimize for rerolling Hexa Core = True
 Toggle_Stuff = {
-    'Frag_Base'         :False,
+    'Frag_Base'         :True,
     'Hexa_Stat_Include' :True,
     'Hexa_Maxed'        :False,
     'ForceMasteryA1234' :True,
@@ -630,21 +630,21 @@ def Run_Main():
             
         Delta_T = Delta_A_1 + Delta_A_2b + Delta_A_2c + Delta_A_3a + Delta_A_3b + Delta_A_3c + Delta_A_4a + Delta_B_1 + Delta_B_2 + Delta_B_3 + Delta_B_4 + Delta_C_1
         
-        for i in range(len(A_1_Multi_boost)):
-            print(str(i) + ":" + str(A_4a_Multi_boost[i]))
-        print("")
-        print('Delta_A_1: '  + str(Revert_Amod_1) + ' : ' + str(Delta_A_1 ) + ' : ')
-        print('Delta_A_2a: ' + str(Revert_Amod_2a) + ' : ' + str(Delta_A_2a) + ' : ')
-        print('Delta_A_2b: ' + str(Revert_Amod_2b) + ' : ' + str(Delta_A_2b) + ' : ')
-        print('Delta_A_2c: ' + str(Revert_Amod_2c) + ' : ' + str(Delta_A_2c) + ' : ')
-        print('Delta_A_3a: ' + str(Revert_Amod_3a) + ' : ' + str(Delta_A_3a) + ' : ')
-        print('Delta_A_3b: ' + str(Revert_Amod_3b) + ' : ' + str(Delta_A_3b) + ' : ')
-        print('Delta_A_3c: ' + str(Revert_Amod_3c) + ' : ' + str(Delta_A_3c) + ' : ')
-        print('Delta_A_4a: ' + str(Revert_Amod_4a) + ' : ' + str(Delta_A_4a) + ' : ')
-        print('Delta_A_4b: ' + str(Revert_Amod_4b) + ' : ' + str(Delta_A_4b) + ' : ')
-        print('Delta_A_4c: ' + str(Revert_Amod_4c) + ' : ' + str(Delta_A_4c) + ' : ')
-        print('Delta_A_4d: ' + str(Revert_Amod_4d) + ' : ' + str(Delta_A_4d) + ' : ')
-        print('Delta_Sum : ' + str(Delta_T))
+        #for i in range(len(A_1_Multi_boost)):
+        #    print(str(i) + ":" + str(A_4a_Multi_boost[i]))
+        #print("")
+        #print('Delta_A_1: '  + str(Revert_Amod_1) + ' : ' + str(Delta_A_1 ) + ' : ')
+        #print('Delta_A_2a: ' + str(Revert_Amod_2a) + ' : ' + str(Delta_A_2a) + ' : ')
+        #print('Delta_A_2b: ' + str(Revert_Amod_2b) + ' : ' + str(Delta_A_2b) + ' : ')
+        #print('Delta_A_2c: ' + str(Revert_Amod_2c) + ' : ' + str(Delta_A_2c) + ' : ')
+        #print('Delta_A_3a: ' + str(Revert_Amod_3a) + ' : ' + str(Delta_A_3a) + ' : ')
+        #print('Delta_A_3b: ' + str(Revert_Amod_3b) + ' : ' + str(Delta_A_3b) + ' : ')
+        #print('Delta_A_3c: ' + str(Revert_Amod_3c) + ' : ' + str(Delta_A_3c) + ' : ')
+        #print('Delta_A_4a: ' + str(Revert_Amod_4a) + ' : ' + str(Delta_A_4a) + ' : ')
+        #print('Delta_A_4b: ' + str(Revert_Amod_4b) + ' : ' + str(Delta_A_4b) + ' : ')
+        #print('Delta_A_4c: ' + str(Revert_Amod_4c) + ' : ' + str(Delta_A_4c) + ' : ')
+        #print('Delta_A_4d: ' + str(Revert_Amod_4d) + ' : ' + str(Delta_A_4d) + ' : ')
+        #print('Delta_Sum : ' + str(Delta_T))
         Amod_1  = Revert_Amod_1 * ( 1 + Delta_T )
         Amod_2a  = Revert_Amod_2a * ( 1 + Delta_T )
         Amod_2b  = Revert_Amod_2b * ( 1 + Delta_T )
@@ -686,22 +686,22 @@ def Run_Main():
         B_4_boost = Fill_Boost(B_4_boost,"B",B_4_Aux ,Bmod_4 ,0  ,len(B_cost))
         C_1_boost = Fill_Boost(C_1_boost,"C",C_1_Aux ,Damage_Distribution['C_1']    ,0  ,len(C_cost))
 
-        print('A_1 Base :' + str(round(Amod_1,5)))
-        print('A_2a Base :' + str(round(Amod_2a,5)))
-        print('A_2b Base :' + str(round(Amod_2b,5)))
-        print('A_2c Base :' + str(round(Amod_2c,5)))
-        print('A_3a Base :' + str(round(Amod_3a,5)))
-        print('A_3b Base :' + str(round(Amod_3b,5)))
-        print('A_3c Base :' + str(round(Amod_3c,5)))
-        print('A_4a Base :' + str(round(Amod_4a,5)))
-        print('A_4b Base :' + str(round(Amod_4b,5)))
-        print('A_4c Base :' + str(round(Amod_4c,5)))
-        print('A_4d Base :' + str(round(Amod_4d,5)))
-        print('B_1 Base :' + str(round(Bmod_1,5)))
-        print('B_2 Base :' + str(round(Bmod_2,5)))
-        print('B_3 Base :' + str(round(Bmod_3,5)))
-        print('B_4 Base :' + str(round(Bmod_4,5)))
-        print('C_1 Base :' + str(round(C_1,5)))
+        #print('A_1 Base :' + str(round(Amod_1,5)))
+        #print('A_2a Base :' + str(round(Amod_2a,5)))
+        #print('A_2b Base :' + str(round(Amod_2b,5)))
+        #print('A_2c Base :' + str(round(Amod_2c,5)))
+        #print('A_3a Base :' + str(round(Amod_3a,5)))
+        #print('A_3b Base :' + str(round(Amod_3b,5)))
+        #print('A_3c Base :' + str(round(Amod_3c,5)))
+        #print('A_4a Base :' + str(round(Amod_4a,5)))
+        #print('A_4b Base :' + str(round(Amod_4b,5)))
+        #print('A_4c Base :' + str(round(Amod_4c,5)))
+        #print('A_4d Base :' + str(round(Amod_4d,5)))
+        #print('B_1 Base :' + str(round(Bmod_1,5)))
+        #print('B_2 Base :' + str(round(Bmod_2,5)))
+        #print('B_3 Base :' + str(round(Bmod_3,5)))
+        #print('B_4 Base :' + str(round(Bmod_4,5)))
+        #print('C_1 Base :' + str(round(C_1,5)))
 
 #        for i in range(len(C_1_boost)):
 #            print(C_1_boost[i])
