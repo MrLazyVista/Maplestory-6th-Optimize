@@ -176,12 +176,15 @@ def Fill_Boost(List,ID,Aux,Val,Start,End):
         elif ID == "D_1":
             if i == 0:
                 List[i] = Val
-            elif (i+1) < 10:
-                DAux     = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-.2))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])) * (1 + Base_Numbers['Damage'] + .2) / (1 + Base_Numbers['Damage'])
-                List[i] = ((172 + i * 11) * Aux * DAux / 172) * Val
             elif (i+1) < 20:
+                DAux     = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-.2))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])) * (1 + Base_Numbers['Damage'] + .2) / (1 + Base_Numbers['Damage'])
+                List[i] = Val * round((172 + i * 11) * Aux * DAux / 172, sig_fig)
+            elif (i+1) < 30:
                 DAux     = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-.4))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])) * (1 + Base_Numbers['Damage'] + .2) / (1 + Base_Numbers['Damage'])
-                List[i]  = ((172 + i * 11) * Aux * DAux / 172) * Val
+                List[i]  = Val * round((172 + i * 11) * Aux * DAux / 172, sig_fig)
+            elif (i+1) == 30:
+                DAux     = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-.6))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])) * (1 + Base_Numbers['Damage'] + .2) / (1 + Base_Numbers['Damage'])
+                List[i]  = Val * round((1+(54480/((172+30*11)*60*6)))*(172 + i * 11) * Aux * DAux / 172, sig_fig)
     return List
     
 # for debugging purposes
