@@ -63,7 +63,7 @@ Damage_Distribution['B_4'] = 5.78                               # Darkness Aura
 Damage_Distribution['C_1'] = 4.85                               # Dead Space
 Damage_Distribution['C_2'] = 1                                  # Ascent, if skill lv0 write down BA as if lv1
 
-Damage_Distribution['D_1'] = 6                                  # Sol Hectate, if skill lv0 write down BA as if lv1
+Damage_Distribution['D_1'] = 4                                  # Sol Hectate, if skill lv0 write down BA as if lv1
 
 # Current Skill Levels (6th Core)
 Level_Distribution = {
@@ -183,7 +183,8 @@ def Fill_Boost(List,ID,Aux,Val,Start,End):
                 DAux     = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-.4))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])) * (1 + Base_Numbers['Damage'] + .2) / (1 + Base_Numbers['Damage'])
                 List[i]  = Val * round((172 + i * 11) * Aux * DAux / 172, sig_fig)
             elif (i+1) == 30:
-                DAux     = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-.6))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])) * (1 + Base_Numbers['Damage'] + .2) / (1 + Base_Numbers['Damage'])
+                DAux     = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-.4))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])) * (1 + Base_Numbers['Damage'] + .2) / (1 + Base_Numbers['Damage'])
+                # List[i]  = Val * round((172 + i * 11) * Aux * DAux / 172, sig_fig)
                 List[i]  = Val * round((1+(54480/((172+30*11)*60*6)))*(172 + i * 11) * Aux * DAux / 172, sig_fig)
     return List
     
@@ -568,8 +569,8 @@ def Run_Main():
         C_2_boost = Fill_Boost(C_2_boost,"C_2",C_2_Aux ,Cmod_2    ,0  ,len(C_cost))
 
         D_1_boost = Fill_Boost(D_1_boost,"D_1",D_1_Aux ,Dmod_1    ,0  ,len(D_cost))
-        # for i in range(len(D_1_Multi_boost)):
-        #     print(str(i) + ":" + str(A_1_Multi_boost[i]))
+        for i in range(len(D_1_Multi_boost)):
+            print(str(i) + ":" + str(D_1_Multi_boost[i]))
 
         # Debugging script to check if the new mod values are correct
         #print('A_1 Base :' + str(round(Amod_1,5)))
