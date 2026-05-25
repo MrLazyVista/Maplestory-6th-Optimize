@@ -63,7 +63,7 @@ Damage_Distribution['B_4'] = 5.78                               # Darkness Aura
 Damage_Distribution['C_1'] = 4.85                               # Dead Space
 Damage_Distribution['C_2'] = 1                                  # Ascent, if skill lv0 write down BA as if lv1
 
-Damage_Distribution['D_1'] = 4                                  # Sol Hectate, if skill lv0 write down BA as if lv1
+Damage_Distribution['D_1'] = 4.5                                # Sol Hectate, if skill lv0 write down BA as if lv1
 
 # Current Skill Levels (6th Core)
 Level_Distribution = {
@@ -174,20 +174,30 @@ def Fill_Boost(List,ID,Aux,Val,Start,End):
                 CAux     = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-.4))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])) * (1 + Base_Numbers['Damage'] + .2) / (1 + Base_Numbers['Damage'])
                 List[i]  = Val * round((12*12*(580+(i+1)*111)+16*15*(759+(i+1)*150))/(12*12*(580+(1)*111)+16*15*(759+(1)*150)) * Aux * CAux,sig_fig)
         elif ID == "D_1":
+            D_p0 = round((172 + 1 * 11)*4*6*60, sig_fig)
             if i == 0:
                 List[i] = Val
+            elif (i+1) < 10:
+                DAux     = 1
+                D_p1     = round((172 + i * 11)*4*6*60, sig_fig)
+                List[i]  = Val * Aux * DAux * D_p1 / D_p0
             elif (i+1) < 20:
                 DAux     = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-.2))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])) * (1 + Base_Numbers['Damage'] + .2) / (1 + Base_Numbers['Damage'])
-                List[i] = Val * round((172 + i * 11) * Aux * DAux / 172, sig_fig)
+                D_p1     = round((172 + i * 11)*4*6*60, sig_fig)
+                List[i]  = Val * Aux * DAux * D_p1 / D_p0
             elif (i+1) < 30:
                 DAux     = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-.4))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])) * (1 + Base_Numbers['Damage'] + .2) / (1 + Base_Numbers['Damage'])
-                List[i]  = Val * round((172 + i * 11) * Aux * DAux / 172, sig_fig)
+                D_p1     = round((172 + i * 11)*4*6*60, sig_fig)
+                D_p2     = round(((356 + i *24)*8) + ((334 + i * 22)*4*4) + ((379+i*26)*7*7), sig_fig)
+                List[i] = Val * Aux * DAux * round((D_p1 + D_p2)/ D_p0, sig_fig)
             elif (i+1) == 30:
                 DAux     = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-.4))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])) * (1 + Base_Numbers['Damage'] + .2) / (1 + Base_Numbers['Damage'])
                 # List[i]  = Val * round((172 + i * 11) * Aux * DAux / 172, sig_fig)
-                List[i]  = Val * round((1+(54480/((172+30*11)*60*6)))*(172 + i * 11) * Aux * DAux / 172, sig_fig)
-    return List
-    
+                D_p1     = (172 + i * 11)*4*6*60
+                D_p2     = ((356 + i *24)*8) + ((334 + i * 22)*4*4) + ((379+i*26)*7*7)
+                D_p3     = 690*4*8 + 540*6*10
+                List[i] = Val * Aux * DAux * round((D_p1 + D_p2 + D_p3)/ D_p0, sig_fig)
+    return List    
 # for debugging purposes
 def ListPrint(List):
     # Determine the maximum width for each column
@@ -569,8 +579,8 @@ def Run_Main():
         C_2_boost = Fill_Boost(C_2_boost,"C_2",C_2_Aux ,Cmod_2    ,0  ,len(C_cost))
 
         D_1_boost = Fill_Boost(D_1_boost,"D_1",D_1_Aux ,Dmod_1    ,0  ,len(D_cost))
-        for i in range(len(D_1_Multi_boost)):
-            print(str(i) + ":" + str(D_1_Multi_boost[i]))
+        # for i in range(len(D_1_Multi_boost)):
+        #     print(str(i) + ":" + str(D_1_Multi_boost[i]))
 
         # Debugging script to check if the new mod values are correct
         #print('A_1 Base :' + str(round(Amod_1,5)))
