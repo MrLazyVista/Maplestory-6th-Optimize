@@ -1,6 +1,7 @@
 from PIL import Image, ImageDraw, ImageFont
 import os
 import copy
+import math
 import numpy
 import tkinter as tk
 
@@ -65,6 +66,8 @@ Damage_Distribution['C_2'] = 1                                  # Ascent, if ski
 
 Damage_Distribution['D_1'] = 4.5                                # Sol Hectate, if skill lv0 write down BA as if lv1
 
+Damage_Distribution['E_1'] = 0.56                               # Common Occupation, if skill lv0 write down BA as if lv1
+
 # Current Skill Levels (6th Core)
 Level_Distribution = {
     'A_1_Level': 0,
@@ -78,6 +81,7 @@ Level_Distribution = {
     'C_1_Level': 1,
     'C_2_Level': 0,
     'D_1_Level': 0,
+    'E_1_Level': 0
 }
 
 # These stats (Crit_Dmg, Att_Power, Att_Perc, Stat) are only used if Toggle_Stuff['Hexa_Stat_Include'] is True
@@ -195,6 +199,8 @@ def Fill_Boost(List,ID,Aux,Val,Start,End):
                 D_p2     = ((356 + i * 24)*8) + ((334 + i * 22)*4*4) + ((379 + i * 26)*7*7)
                 D_p3     = 690*4*8 + 540*6*10
                 List[i] = Val * Aux * DAux * round((D_p1 + D_p2 + D_p3)/ (D_p0a + D_p0b), sig_fig)
+        elif ID == "E_1":
+            List[i] = Val * Aux * (24*i + 88)/(88+24)
     return List    
 # for debugging purposes
 def ListPrint(List):
@@ -297,16 +303,18 @@ def Run_Main():
     
     if Toggle_Stuff['Frag_Base']:
         #Fragment cost stuff
-        A_cost = [50,15,18,20,23,25,28,30,33,100,40,45,50,55,60,65,70,75,80,175,85,90,95,100,105,110,115,120,125,250]
-        B_cost = [75,23,27,30,34,38,42,45,49,150,60,68,75,83,90,98,105,113,120,263,128,135,143,150,158,165,173,180,188,375]
-        C_cost = [100,30,35,40,45,50,55,60,65,200,80,90,100,110,120,130,140,150,160,350,170,180,190,200,210,220,230,240,250,500]
-        D_cost = [125,38,44,50,57,63,69,75,82,300,110,124,138,152,165,179,193,207,220,525,234,248,262,275,289,303,317,330,344,750]
+        A_cost = [50,15,18,20,23,25,28,30,33,100,40,45,50,55,60,65,70,75,80,175,85,90,95,100,105,110,115,120,125,250] # Mastery
+        B_cost = [75,23,27,30,34,38,42,45,49,150,60,68,75,83,90,98,105,113,120,263,128,135,143,150,158,165,173,180,188,375] # Reinforcement
+        C_cost = [100,30,35,40,45,50,55,60,65,200,80,90,100,110,120,130,140,150,160,350,170,180,190,200,210,220,230,240,250,500] # Origin/Ascent
+        D_cost = [125,38,44,50,57,63,69,75,82,300,110,124,138,152,165,179,193,207,220,525,234,248,262,275,289,303,317,330,344,750] # Sol Hectate
+        E_cost = [90,25,30,35,40,45,50,55,60,180,73,81,90,98,107,115,124,132,141,315,151,160,170,179,189,198,208,217,227,450] # Common Occupation
     else:
         #Energy cost stuff
         A_cost = [3,1,1,1,1,1,1,2,2,5,2,2,2,2,2,2,2,2,3,8,3,3,3,3,3,3,3,3,4,10]
         B_cost = [4,1,1,1,2,2,2,3,3,8,3,3,3,3,3,3,3,3,4,12,4,4,4,4,4,5,5,5,6,15]
         C_cost = [5,1,1,1,2,2,2,3,3,10,3,3,4,4,4,4,4,4,5,15,5,5,5,5,5,6,6,6,7,20]
         D_cost = [7,2,2,2,3,3,3,5,5,14,5,5,6,6,6,6,6,6,7,17,7,7,7,7,7,9,9,9,10,20]
+        E_cost = [4,1,1,1,2,2,2,3,3,9,3,3,3,3,4,4,4,4,4,14,4,5,5,5,5,5,5,5,6,18]
 
     A_1_boost   = 30 * [0]
     A_2a_boost   = 30 * [0]
@@ -329,6 +337,7 @@ def Run_Main():
     C_1_boost   = 30 * [0]
     C_2_boost   = 30 * [0]
     D_1_boost   = 30 * [0]
+    E_1_boost   = 30 * [0]
 
     BoostArray  = {
         'A_1'   :   0,
@@ -341,6 +350,7 @@ def Run_Main():
         'B_4'   :   0,
         'C_1'   :   0,
         'D_1'   :   0,
+        'E_1'   :   0
         }
     CostArray   = {
         'A_1'   :   0,
@@ -352,7 +362,8 @@ def Run_Main():
         'B_3'   :   0,
         'B_4'   :   0,
         'C_1'   :   0,
-        'D_1'   :   0
+        'D_1'   :   0,
+        'E_1'   :   0
         }
     Final_List  = []
     C_1_Changed = False
@@ -400,6 +411,7 @@ def Run_Main():
         C_1_Aux         = 1
         C_2_Aux         = 1
         D_1_Aux         = 1
+        E_1_Aux         = 1
         
         A_1_boost = Fill_Boost(A_1_boost,"A1",A_1_Aux ,Amod_1 ,0  ,len(A_cost))
         
@@ -428,6 +440,8 @@ def Run_Main():
         C_2_boost = Fill_Boost(C_2_boost,"C_2",C_2_Aux ,Damage_Distribution['C_2']    ,0  ,len(C_cost))
 
         D_1_boost = Fill_Boost(D_1_boost,"D_1",D_1_Aux ,Damage_Distribution['D_1']    ,0  ,len(D_cost))
+
+        E_1_boost = Fill_Boost(E_1_boost,"E_1",E_1_Aux ,Damage_Distribution['E_1']    ,0  ,len(E_cost))
         
         print('A_1 Base :' + str(round(Amod_1,5)))
         print('A_2a Base :' + str(round(Amod_2a,5)))
@@ -445,7 +459,9 @@ def Run_Main():
         print('B_3 Base :' + str(round(Bmod_3,5)))
         print('B_4 Base :' + str(round(Bmod_4,5)))
         print('C_1 Base :' + str(round(C_1,5)))
-        print('C_2 Base :' + str(round(C_1,5)))
+        print('C_2 Base :' + str(round(C_2,5)))
+        print('D_1 Base :' + str(round(Damage_Distribution['D_1'],5)))
+        print('E_1 Base :' + str(round(Damage_Distribution['E_1'],5)))
     else:
         A_1_Aux         = 1
         A_2_Aux         = 1
@@ -458,7 +474,7 @@ def Run_Main():
         C_1_Aux         = 1
         C_2_Aux         = 1
         D_1_Aux         = 1
-        
+        E_1_Aux         = 1
         # if there is a C_1 level then the Mod values are just the damage distribution values since they are already being boosted by C_1
         A_1_Multi_boost = Fill_Boost(A_1_boost,"A1",A_1_Aux ,1 ,0  ,len(A_cost))
         
@@ -485,6 +501,8 @@ def Run_Main():
         C_2_Multi_boost = Fill_Boost(C_2_boost,"C_2",C_2_Aux ,1 ,0  ,len(C_cost))
 
         D_1_Multi_boost = Fill_Boost(D_1_boost,"D_1",D_1_Aux ,1 ,0  ,len(D_cost))
+
+        E_1_Multi_boost = Fill_Boost(E_1_boost,"E_1",E_1_Aux ,1 ,0  ,len(E_cost))
         
         # Compute revert values for each skill
         Revert_Amod_1,Delta_A_1    = Reverter_Multi(Damage_Distribution['A_1'] ,Level_Distribution['A_1_Level'],A_1_Multi_boost,Level_Distribution['A_2_Level'],A_2a_Multi_boost)
@@ -511,12 +529,13 @@ def Run_Main():
         Revert_C_2   ,Delta_C_2  = Reverter(Damage_Distribution['C_2'],Level_Distribution['C_2_Level'],C_2_Multi_boost)
 
         Revert_D_1   ,Delta_D_1  = Reverter(Damage_Distribution['D_1'],Level_Distribution['D_1_Level'],D_1_Multi_boost)
+        Revert_E_1   ,Delta_E_1  = Reverter(Damage_Distribution['E_1'],Level_Distribution['E_1_Level'],E_1_Multi_boost)
             
-        Delta_T = Delta_A_1 + Delta_A_2b + Delta_A_2c + Delta_A_3a + Delta_A_3b + Delta_A_3c + Delta_A_4a + Delta_B_1 + Delta_B_2 + Delta_B_3 + Delta_B_4 + Delta_C_1 + Delta_C_2 + Delta_D_1
-        
+        Delta_T = Delta_A_1 + Delta_A_2b + Delta_A_2c + Delta_A_3a + Delta_A_3b + Delta_A_3c + Delta_A_4a + Delta_B_1 + Delta_B_2 + Delta_B_3 + Delta_B_4 + Delta_C_1 + Delta_C_2 + Delta_D_1 + Delta_E_1
+
         # Rebugging script to check if the revert values are correct
-        for i in range(len(D_1_Multi_boost)):
-            print(str(i) + ":" + str(D_1_Multi_boost[i]))
+        #for i in range(len(D_1_Multi_boost)):
+        #    print(str(i) + ":" + str(D_1_Multi_boost[i]))
         #print("")
         #print('Delta_A_1: '  + str(Revert_Amod_1) + ' : ' + str(Delta_A_1 ) + ' : ')
         #print('Delta_A_2a: ' + str(Revert_Amod_2a) + ' : ' + str(Delta_A_2a) + ' : ')
@@ -549,7 +568,8 @@ def Run_Main():
         C_1     = Revert_C_1 * ( 1 + Delta_T )
         Cmod_2     = Revert_C_2 * ( 1 + Delta_T )
         Dmod_1     = Revert_D_1 * ( 1 + Delta_T )
-        
+        Emod_1     = Revert_E_1 * ( 1 + Delta_T )
+
         A_1_boost = Fill_Boost(A_1_boost,"A1",A_1_Aux ,Amod_1 ,0  ,len(A_cost))
         
         A_2a_boost = Fill_Boost(A_2a_boost,"A2a",A_2_Aux ,Amod_2a ,0  ,len(A_cost))
@@ -577,26 +597,32 @@ def Run_Main():
         C_2_boost = Fill_Boost(C_2_boost,"C_2",C_2_Aux ,Cmod_2    ,0  ,len(C_cost))
 
         D_1_boost = Fill_Boost(D_1_boost,"D_1",D_1_Aux ,Dmod_1    ,0  ,len(D_cost))
+        E_1_boost = Fill_Boost(E_1_boost,"E_1",E_1_Aux ,Emod_1    ,0  ,len(E_cost))
+
         #for i in range(len(D_1_Multi_boost)):
         #    print(str(i) + ":" + str(D_1_boost[i]))
 
         # Debugging script to check if the new mod values are correct
-        #print('A_1 Base :' + str(round(Amod_1,5)))
-        #print('A_2a Base :' + str(round(Amod_2a,5)))
-        #print('A_2b Base :' + str(round(Amod_2b,5)))
-        #print('A_2c Base :' + str(round(Amod_2c,5)))
-        #print('A_3a Base :' + str(round(Amod_3a,5)))
-        #print('A_3b Base :' + str(round(Amod_3b,5)))
-        #print('A_3c Base :' + str(round(Amod_3c,5)))
-        #print('A_4a Base :' + str(round(Amod_4a,5)))
-        #print('A_4b Base :' + str(round(Amod_4b,5)))
-        #print('A_4c Base :' + str(round(Amod_4c,5)))
-        #print('A_4d Base :' + str(round(Amod_4d,5)))
-        #print('B_1 Base :' + str(round(Bmod_1,5)))
-        #print('B_2 Base :' + str(round(Bmod_2,5)))
-        #print('B_3 Base :' + str(round(Bmod_3,5)))
-        #print('B_4 Base :' + str(round(Bmod_4,5)))
-        #print('C_1 Base :' + str(round(C_1,5)))
+        print('')
+        print('A_1 Base :' + str(round(Amod_1,5)))
+        print('A_2a Base :' + str(round(Amod_2a,5)))
+        print('A_2b Base :' + str(round(Amod_2b,5)))
+        print('A_2c Base :' + str(round(Amod_2c,5)))
+        print('A_3a Base :' + str(round(Amod_3a,5)))
+        print('A_3b Base :' + str(round(Amod_3b,5)))
+        print('A_3c Base :' + str(round(Amod_3c,5)))
+        print('A_4a Base :' + str(round(Amod_4a,5)))
+        print('A_4b Base :' + str(round(Amod_4b,5)))
+        print('A_4c Base :' + str(round(Amod_4c,5)))
+        print('A_4d Base :' + str(round(Amod_4d,5)))
+        print('B_1 Base :' + str(round(Bmod_1,5)))
+        print('B_2 Base :' + str(round(Bmod_2,5)))
+        print('B_3 Base :' + str(round(Bmod_3,5)))
+        print('B_4 Base :' + str(round(Bmod_4,5)))
+        print('C_1 Base :' + str(round(C_1,5)))
+        print('C_2 Base :' + str(round(Cmod_2,5)))
+        print('D_1 Base :' + str(round(Dmod_1,5)))  
+        print('E_1 Base :' + str(round(Emod_1,5)))
 
     # input initial boost and cost values
     if Level_Distribution['A_1_Level'] != 0:
@@ -623,7 +649,9 @@ def Run_Main():
         BoostArray['C_2'] = C_2_boost[Level_Distribution['C_2_Level']-1]
     if Level_Distribution['D_1_Level'] != 0:
         BoostArray['D_1'] = D_1_boost[Level_Distribution['D_1_Level']-1]
-        
+    if Level_Distribution['E_1_Level'] != 0:
+        BoostArray['E_1'] = E_1_boost[Level_Distribution['E_1_Level']-1]
+
     if Level_Distribution['A_1_Level'] != 0:
         CostArray['A_1'] = sum_entries_up_to_number(A_cost,Level_Distribution['A_1_Level'] - 1)
     if Level_Distribution['A_2_Level'] != 0:
@@ -648,12 +676,34 @@ def Run_Main():
         CostArray['C_2'] = sum_entries_up_to_number(C_cost,Level_Distribution['C_2_Level'] - 1)
     if Level_Distribution['D_1_Level'] != 0:
         CostArray['D_1'] = sum_entries_up_to_number(D_cost,Level_Distribution['D_1_Level'] - 1)
+    if Level_Distribution['E_1_Level'] != 0:    
+        CostArray['E_1'] = sum_entries_up_to_number(E_cost,Level_Distribution['E_1_Level'] - 1)
 
+    PotentialBoostArray = {
+        'A_1': A_1_boost[-1],
+        'A_2': A_2_boost[-1],
+        'A_3': A_3_boost[-1],
+        'A_4': A_4_boost[-1],
+        'B_1': B_1_boost[-1],
+        'B_2': B_2_boost[-1],
+        'B_3': B_3_boost[-1],
+        'B_4': B_4_boost[-1],
+        'C_1': C_1_boost[-1],
+        'C_2': C_2_boost[-1],
+        'D_1': D_1_boost[-1],
+        'E_1': E_1_boost[-1]
+    }
+
+    print('')
+    for key in PotentialBoostArray:
+        print('Potential Boost for ' + key + ' : ' + str(round(PotentialBoostArray[key],5)))
+    print('')
     if C_1_Changed == False:
         print('Total FD gain at the start : ' + str(round(sum(BoostArray.values()),5)))
     else:
         print('Total FD gained currently : ' + str(round(sum(BoostArray.values()),5) - Damage_Distribution['C_1']))
     print('Total Resources Spent     : ' + str(round(sum(CostArray.values()),0)))
+    print('Total Possible FD gain        : ' + str(round(sum(PotentialBoostArray.values()),5)))
     print('')
 
     if Toggle_Stuff['ForceMasteryA1234']:
@@ -676,6 +726,8 @@ def Run_Main():
         C_1_Delta_boost = ListSubtractConstant(C_1_boost,Level_Distribution['C_1_Level'])
         C_2_Delta_boost = ListSubtractConstant(C_2_boost,Level_Distribution['C_2_Level'])
         D_1_Delta_boost = ListSubtractConstant(D_1_boost,Level_Distribution['D_1_Level'])
+        E_1_Delta_boost = ListSubtractConstant(E_1_boost,Level_Distribution['E_1_Level'])   
+
     #    print("Delta_Boost")
     #    ListPrint(B_3_Delta_boost)
 
@@ -690,6 +742,8 @@ def Run_Main():
         C_1_Tcost = Fill_Costs(C_cost,Level_Distribution['C_1_Level'])
         C_2_Tcost = Fill_Costs(C_cost,Level_Distribution['C_2_Level'])
         D_1_Tcost = Fill_Costs(D_cost,Level_Distribution['D_1_Level'])
+        E_1_Tcost = Fill_Costs(E_cost,Level_Distribution['E_1_Level'])
+
     #    print("TCost")
     #    ListPrint(C_1_Tcost)
 
@@ -705,6 +759,7 @@ def Run_Main():
         C_1_BoostOverCost = ListByListDivide(C_1_Delta_boost, C_1_Tcost)
         C_2_BoostOverCost = ListByListDivide(C_2_Delta_boost, C_2_Tcost)
         D_1_BoostOverCost = ListByListDivide(D_1_Delta_boost, D_1_Tcost)
+        E_1_BoostOverCost = ListByListDivide(E_1_Delta_boost, E_1_Tcost)
 
     #    print("DeltaBoost/Cost")
     #    ListPrint(C_1_BoostOverCost)
@@ -720,6 +775,7 @@ def Run_Main():
         C_1_BoostOverCost = [[i + 1, val, "C_1"] for i, val in enumerate(C_1_BoostOverCost)]
         C_2_BoostOverCost = [[i + 1, val, "C_2"] for i, val in enumerate(C_2_BoostOverCost)]
         D_1_BoostOverCost = [[i + 1, val, "D_1"] for i, val in enumerate(D_1_BoostOverCost)]
+        E_1_BoostOverCost = [[i + 1, val, "E_1"] for i, val in enumerate(E_1_BoostOverCost)]
 
         if Toggle_Stuff['ForceMasteryA1234'] == True:
             if PassCount == 0:
@@ -771,6 +827,7 @@ def Run_Main():
         C_1_BoostOverCost = sorted(C_1_BoostOverCost, key=lambda x: x[1], reverse = True)
         C_2_BoostOverCost = sorted(C_2_BoostOverCost, key=lambda x: x[1], reverse = True)
         D_1_BoostOverCost = sorted(D_1_BoostOverCost, key=lambda x: x[1], reverse = True)
+        E_1_BoostOverCost = sorted(E_1_BoostOverCost, key=lambda x: x[1], reverse = True)
 
         A_1_BoostOverCost_Filtered = SequentialFilter(A_1_BoostOverCost)
         A_2_BoostOverCost_Filtered = SequentialFilter(A_2_BoostOverCost)
@@ -783,9 +840,10 @@ def Run_Main():
         C_1_BoostOverCost_Filtered = SequentialFilter(C_1_BoostOverCost)
         C_2_BoostOverCost_Filtered = SequentialFilter(C_2_BoostOverCost)
         D_1_BoostOverCost_Filtered = SequentialFilter(D_1_BoostOverCost)
+        E_1_BoostOverCost_Filtered = SequentialFilter(E_1_BoostOverCost)
 
         # fuse all the lists
-        MegaList = A_1_BoostOverCost_Filtered + A_2_BoostOverCost_Filtered + A_3_BoostOverCost_Filtered + A_4_BoostOverCost_Filtered + B_1_BoostOverCost_Filtered + B_2_BoostOverCost_Filtered + B_3_BoostOverCost_Filtered + B_4_BoostOverCost_Filtered +  C_1_BoostOverCost_Filtered +  C_2_BoostOverCost_Filtered + D_1_BoostOverCost_Filtered
+        MegaList = A_1_BoostOverCost_Filtered + A_2_BoostOverCost_Filtered + A_3_BoostOverCost_Filtered + A_4_BoostOverCost_Filtered + B_1_BoostOverCost_Filtered + B_2_BoostOverCost_Filtered + B_3_BoostOverCost_Filtered + B_4_BoostOverCost_Filtered +  C_1_BoostOverCost_Filtered +  C_2_BoostOverCost_Filtered + D_1_BoostOverCost_Filtered + E_1_BoostOverCost_Filtered
         # sort by efficiency
         MegaList = sorted(MegaList, key=lambda x: x[1], reverse = True)
         # ListPrint(MegaList)
@@ -836,7 +894,11 @@ def Run_Main():
             Level_Distribution['D_1_Level'] = MegaList[0][0]
             BoostArray['D_1'] = D_1_boost[Level_Distribution['D_1_Level'] - 1]
             CostArray['D_1'] = sum_entries_up_to_number(D_cost,Level_Distribution['D_1_Level'] - 1)
-            
+        elif MegaList[0][2] == "E_1":
+            Level_Distribution['E_1_Level'] = MegaList[0][0]
+            BoostArray['E_1'] = E_1_boost[Level_Distribution['E_1_Level'] - 1]
+            CostArray['E_1'] = sum_entries_up_to_number(E_cost,Level_Distribution['E_1_Level'] - 1)
+
         BoostArraySum = round(sum(BoostArray.values()),5)
         CostArraySum = round(sum(CostArray.values()))
         MegaList[0].append(BoostArraySum)
@@ -1022,7 +1084,7 @@ def Run_Main():
                 DOC_Filtered[i][0] = "Until " + str(DOC_Filtered[i][0] + 1)
 
             DOC_Filtered[-1][0] = "Max it"
-            
+
             Final_List = Final_List + DOC_Filtered
             Final_List = sorted(Final_List, key=lambda x: x[1], reverse = True)
         else:
@@ -1097,6 +1159,18 @@ def Run_Main():
     def format_scientific_notation(lst):
         return [lst[0], format(lst[1], '.5e'), *lst[2:]]
 
+    # Insert Stat Core entries immediately after A_1 level 9 and level 19
+    adjusted_final_list = []
+    for item in Compressed_Final_List:
+        adjusted_final_list.append(item)
+        if item[2] == "A_4" and item[0] == 1 and Toggle_Stuff['Frag_Base'] == False:
+            adjusted_final_list.append(["Unlock", item[1], "Stat Core"])
+        elif item[2] == "A_1" and item[0] == 9:
+            adjusted_final_list.append(["Unlock", item[1], "Stat Core II"])
+        elif item[2] == "A_1" and item[0] == 19:
+            adjusted_final_list.append(["Unlock", item[1], "Stat Core III"])
+
+    Compressed_Final_List = adjusted_final_list
     # Apply the formatting to each sublist
     Compressed_Final_List = [format_scientific_notation(sublist) for sublist in Compressed_Final_List]
 
@@ -1104,22 +1178,41 @@ def Run_Main():
     ListPrint(Compressed_Final_List)
     # printing stuff
 
-    grid_width, grid_height = 15, 4  # You can adjust these dimensions as needed
+    entries = len(Compressed_Final_List)
     spacing = 20
 
     # Calculate the size of each image and the spacing
     image_size = 64  # Adjust the spacing (10) as needed
+    aspect_ratio = 16 / 9
 
-    # Define the canvas size and grid dimensions
+    if entries <= 0:
+        grid_width, grid_height = 1, 1
+    else:
+        ideal_width = max(1, int(math.sqrt(entries * aspect_ratio)))
+        candidates = set()
+        for delta in range(-3, 5):
+            candidates.add(max(1, ideal_width + delta))
+        candidates.add(1)
+        candidates.add(entries)
+
+        best_width = None
+        best_score = None
+        for candidate_width in sorted(candidates):
+            candidate_height = math.ceil(entries / candidate_width)
+            ratio = candidate_width / candidate_height
+            ratio_score = abs(ratio - aspect_ratio)
+            area_score = candidate_width * candidate_height
+            score = ratio_score + area_score * 1e-4
+            if best_score is None or score < best_score:
+                best_score = score
+                best_width = candidate_width
+
+        grid_width = best_width
+        grid_height = math.ceil(entries / grid_width)
+
     canvas_height = grid_height * (spacing + image_size) + 150
-    canvas_width  = 1200
-
-    while len(Compressed_Final_List) >= grid_width * grid_height:
-        grid_height += 1
-        canvas_height += image_size + spacing
-
-    if canvas_width < (16 / 9) * canvas_height:
-        canvas_width = round(16 / 9 * canvas_height)
+    min_canvas_width = grid_width * (spacing + image_size) + 100
+    canvas_width = max(min_canvas_width, round(aspect_ratio * canvas_height))
         
     # Get the current working directory
     current_directory = os.getcwd()
@@ -1136,7 +1229,10 @@ def Run_Main():
     image_C_1 = Image.open(os.path.join(current_directory, "C_1.png"))
     image_C_2 = Image.open(os.path.join(current_directory, "C_2.png"))
     image_D_1 = Image.open(os.path.join(current_directory, "D_1.png"))
+    image_E_1 = Image.open(os.path.join(current_directory, "E_1.png"))
     image_Stat = Image.open(os.path.join(current_directory, "Stat.png"))
+    image_Stat_2 = Image.open(os.path.join(current_directory, "Stat II.png"))
+    image_Stat_3 = Image.open(os.path.join(current_directory, "Stat III.png"))
 
     background_image = Image.open("Background.png")
 
@@ -1162,7 +1258,7 @@ def Run_Main():
     author_text = "By: LazyVista (XseedGames)"
     if Toggle_Stuff['Hexa_Stat_Include'] == True:
         if Toggle_Stuff['Hexa_Maxed'] == False:
-            priority_text = "No Rerolling --- " + list(Gains.items())[0][0] + " / " + list(Gains.items())[1][0] + " / " + list(Gains.items())[2][0]
+            priority_text = "Stat Cores --- Reg (Late Game): Att Boss Crit         Reboot and Mules: Att Stat Boss"
         else:
             priority_text = "Rerolling Style --- " + list(Gains.items())[0][0] + " / " + list(Gains.items())[1][0] + " / " + list(Gains.items())[2][0]
     title_font_size = 36  # Adjust to your desired font size
@@ -1254,9 +1350,15 @@ def Run_Main():
                 canvas.paste(image_C_2.resize((image_size, image_size)), (x, y))
             elif Compressed_Final_List[entry][2] == "D_1":
                 canvas.paste(image_D_1.resize((image_size, image_size)), (x, y))
+            elif Compressed_Final_List[entry][2] == "E_1":
+                canvas.paste(image_E_1.resize((image_size, image_size)), (x, y))
             elif Compressed_Final_List[entry][2] == "Stat Core":
                 canvas.paste(image_Stat.resize((image_size, image_size)), (x, y))
-                
+            elif Compressed_Final_List[entry][2] == "Stat Core II":
+                canvas.paste(image_Stat_2.resize((image_size, image_size)), (x, y))
+            elif Compressed_Final_List[entry][2] == "Stat Core III":
+                canvas.paste(image_Stat_3.resize((image_size, image_size)), (x, y))
+
             Result_lv = Compressed_Final_List[entry][0]
 
             # Calculate the position for the text
@@ -1285,7 +1387,11 @@ def Run_Main():
             entry += 1
             if entry == len(Compressed_Final_List):
                 break
+            if entry == len(Compressed_Final_List) - 1 and Toggle_Stuff['Frag_Base'] == False:
+                break
         if entry == len(Compressed_Final_List):
+            break
+        if entry == len(Compressed_Final_List) - 1 and Toggle_Stuff['Frag_Base'] == False:
             break
 
     # Save the final canvas image

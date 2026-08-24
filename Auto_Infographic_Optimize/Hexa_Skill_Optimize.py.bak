@@ -1,7 +1,14 @@
 from PIL import Image, ImageDraw, ImageFont
 import os
+import copy
 import numpy
 import tkinter as tk
+
+# If you want to customize the code to a class that isnt Dark Knight 
+# 1. Make the mastery skill percentages match your class
+# 2. Ctrl + F "def Fill_Boost" change the skill percentages to match the mastery numbers
+# 3. Ctrl + F "Reverter_Multi(Damage_Distribution" and use Reverter for skills that dont have multiple masteries affecting them, and multi version for those that do
+# 4. Replace the skill .png in the folder this python code is in
 
 ## VERY IMPORTANT TO FILL BOXES (DAMAGE, IED, BOSS_DEF, A_1 ..... Level_Distribution['C_1_Level'])
 ## VERY IMPORTANT TO FILL BOXES (DAMAGE, IED, BOSS_DEF, A_1 ..... Level_Distribution['C_1_Level'])
@@ -13,58 +20,72 @@ Toggle_Stuff = {
     'Frag_Base'         :True,
     'Hexa_Stat_Include' :True,
     'Hexa_Maxed'        :False,
-    'Force_A1_Before_A2':True,
+    'ForceMasteryA1234' :True,
     }
     
-# Use decimal values 98% = 0.98, 612% = 6.12, etc etc
+# Use percentage values 98% = 98, 612% = 612, etc etc
 # Damage is Boss% + Damage%,
 # IED is what you see on character sheet
 # Hidden IED is IED that doesnt show up on your character page, explorer link, built into skills, debuffs, etc etc
 Base_Numbers = {
-    'Damage'    :502+78+90,
-    'IED'       :96,
+    'Damage'    :500+90+80,
+    'IED'       :97,
     'Hidden_IED':40,
     'Boss_Def'  :380
     }
 
-# Before Origin BA values (use fraction values 0.25, 0.5, 0.1, etc etc)
-# A_1 represents the BA contribute of your 4th job skill that is boosted
-# B_1 means your first 5th job skill (Spear for ex)
-# B_2 for the second 5th job skill (Radiant Evil)
-# B_3 for third (Cyclone), etc etc
-# C_1 represents your Origin Skill, and how big you expect it to be (BA percentage wise)
-# A_2a, A_2b, represents the second mastery cores and the individual skills for dark knight 
-# (A_2a = Gungnir, A_2b = Nightshade explosion, A_2c = Impale) A_2a is designed to be the same as A_1, if its not, leave it at 0 and use A_2b or A_2c instead.
-# Input an estimated BA contribution for level one if Origin is currently nonexistant
-Damage_Distribution = {
-    'A_1': 20.75,
-    'A_2a': 20.75,
-    'A_2b': 3.14,
-    'A_2c': 0,
-    'B_1': 22.31,
-    'B_2': 16.82,
-    'B_3': 10.89,
-    'B_4': 7.90,
-    'C_1': 6.49,
-}
+# Fill out your Battle Analysis Contributions in this table and dont forget the levels as well
+# Use percentage values 15% = 15, same as above.
+# A skills are "Mastery Skills", B Skills are Reinforcements, C Skills are Origin Skills
+# Some mastery skills have overlapping skills, thats why you see the "Damage_Distribution['A_1']"
+
+Damage_Distribution = {}
+Damage_Distribution['A_1']  = 16.37                             # Gungnir
+
+Damage_Distribution['A_2a'] = Damage_Distribution['A_1']        # Also Gungnir
+Damage_Distribution['A_2b'] = 2.29                              # Nightshade
+Damage_Distribution['A_2c'] = 0                                 # Impale
+
+Damage_Distribution['A_3a'] = 5.73                              # EE Revenge
+Damage_Distribution['A_3b'] = 1.45                              # EE Punishment
+Damage_Distribution['A_3c'] = 1.38                              # Final Attack
+
+Damage_Distribution['A_4a'] = 6.61                              # EE Shock
+Damage_Distribution['A_4b'] = Damage_Distribution['A_2b']       # Nightshade
+Damage_Distribution['A_4c'] = Damage_Distribution['A_3a']       # EE Revenge
+Damage_Distribution['A_4d'] = Damage_Distribution['A_3b']       # EE Punishment
+
+Damage_Distribution['B_1'] = 16.07                              # Soear
+Damage_Distribution['B_2'] = 7.55                               # Radiant
+Damage_Distribution['B_3'] = 8.23                               # Cyclone
+Damage_Distribution['B_4'] = 5.78                               # Darkness Aura
+
+Damage_Distribution['C_1'] = 4.85                               # Dead Space
+Damage_Distribution['C_2'] = 1                                  # Ascent, if skill lv0 write down BA as if lv1
+
+Damage_Distribution['D_1'] = 4                                  # Sol Hectate, if skill lv0 write down BA as if lv1
 
 # Current Skill Levels (6th Core)
 Level_Distribution = {
     'A_1_Level': 0,
     'A_2_Level': 0,
+    'A_3_Level': 0,
+    'A_4_Level': 0,
     'B_1_Level': 0,
     'B_2_Level': 0,
     'B_3_Level': 0,
     'B_4_Level': 0,
     'C_1_Level': 1,
+    'C_2_Level': 0,
+    'D_1_Level': 0,
 }
 
 # These stats (Crit_Dmg, Att_Power, Att_Perc, Stat) are only used if Toggle_Stuff['Hexa_Stat_Include'] is True
 Additional_Numbers = {
-    'Crit_Dmg'  :141.4,
-    'Att_Power' :9076,
-    'Att_Perc'  :145,
-    'Stat'      :81500
+    'Crit_Dmg'  :130 + 30,
+    'Att_Power' :7000,
+    'Att_Perc'  :97,
+    'Stat'      :74000
     }
 
 # Hexa_Stat_ Main/Alt values are only used if Toggle_Stuff['Hexa_Maxed'] is True, uses a [level,Stat] format, use the following strings of "Stat"
@@ -98,6 +119,21 @@ def Fill_Boost(List,ID,Aux,Val,Start,End):
             Aux_Boss  = 1
         elif ID == "A2c":   
             List[i]   = ((298 + 9*(i+1))/280 * Aux - 1) * Val
+        elif ID == "A3a":   
+            List[i]   = ((88 + 2*(i+1))/88 * Aux - 1) * Val
+        elif ID == "A3b":   
+            List[i]   = ((143 + 3*(i+1))/143 * Aux - 1) * Val
+        elif ID == "A3c":
+            Proc_Per  = (40+(i+1)*25/30)/40
+            List[i]   = (Proc_Per*(87 + 1*(i+1))/80 * Aux - 1) * Val
+        elif ID == "A4a":   
+            List[i]   = ((((680 + 20*(i+1))/630) * Aux - 1)+(((470 + 13*(i+1))/423) * Aux - 1))/2 * Val
+        elif ID == "A4b":   
+            List[i]   = (((390 + 37 + 9*(i+1))*12/10)/400 * Aux - 1) * Val
+        elif ID == "A4c":   
+            List[i]   = ((88 + 7 + 1*(i+1))/88 * Aux - 1) * Val
+        elif ID == "A4d":   
+            List[i]   = ((143 + 15 + 4/3*(i+1))/143 * Aux - 1) * Val
         elif ID == "B":
             if (i+1) < 10:
                 List[i] = round((0.11 + i*0.01) * Aux * Val,sig_fig)
@@ -107,7 +143,7 @@ def Fill_Boost(List,ID,Aux,Val,Start,End):
                 List[i] = round((0.21 + i*0.01) * Aux * Val,sig_fig)
             elif (i+1) == 30:
                 List[i]  = round(0.60            * Aux * Val,sig_fig)
-        elif ID == "C":
+        elif ID == "C_1":
             if i == 0:
                 List[i] = Damage_Distribution['C_1']
             elif (i+1) < 10:
@@ -122,6 +158,34 @@ def Fill_Boost(List,ID,Aux,Val,Start,End):
             elif (i+1) == 30:
                 CAux     = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-.2)*(1-0.3))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])) * (1 + Base_Numbers['Damage'] + .2 + .3) / (1 + Base_Numbers['Damage'])
                 List[i] = Damage_Distribution['C_1'] + round((i) * Aux * CAux  * Val/30,sig_fig)
+        elif ID == "C_2":
+            if i == 0:
+                List[i] = Val
+            elif (i+1) < 10:
+                CAux     = 1
+                List[i]  = Val * round((12*12*(580+(i+1)*111)+16*15*(759+(i+1)*150))/(12*12*(580+(1)*111)+16*15*(759+(1)*150)) * Aux * CAux,sig_fig)
+            elif (i+1) < 20:
+                CAux     = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-.1))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])) * (1 + Base_Numbers['Damage'] + .1) / (1 + Base_Numbers['Damage'])
+                List[i]  = Val * round((12*12*(580+(i+1)*111)+16*15*(759+(i+1)*150))/(12*12*(580+(1)*111)+16*15*(759+(1)*150)) * Aux * CAux,sig_fig)
+            elif (i+1) < 30:
+                CAux     = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-.2))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])) * (1 + Base_Numbers['Damage'] + .2) / (1 + Base_Numbers['Damage'])
+                List[i]  = Val * round((12*12*(580+(i+1)*111)+16*15*(759+(i+1)*150))/(12*12*(580+(1)*111)+16*15*(759+(1)*150)) * Aux * CAux,sig_fig)
+            elif (i+1) == 30:
+                CAux     = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-.4))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])) * (1 + Base_Numbers['Damage'] + .2) / (1 + Base_Numbers['Damage'])
+                List[i]  = Val * round((12*12*(580+(i+1)*111)+16*15*(759+(i+1)*150))/(12*12*(580+(1)*111)+16*15*(759+(1)*150)) * Aux * CAux,sig_fig)
+        elif ID == "D_1":
+            if i == 0:
+                List[i] = Val
+            elif (i+1) < 20:
+                DAux     = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-.2))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])) * (1 + Base_Numbers['Damage'] + .2) / (1 + Base_Numbers['Damage'])
+                List[i] = Val * round((172 + i * 11) * Aux * DAux / 172, sig_fig)
+            elif (i+1) < 30:
+                DAux     = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-.4))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])) * (1 + Base_Numbers['Damage'] + .2) / (1 + Base_Numbers['Damage'])
+                List[i]  = Val * round((172 + i * 11) * Aux * DAux / 172, sig_fig)
+            elif (i+1) == 30:
+                DAux     = (1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])*(1-.4))/(1-Base_Numbers['Boss_Def']*(1-Base_Numbers['IED'])) * (1 + Base_Numbers['Damage'] + .2) / (1 + Base_Numbers['Damage'])
+                # List[i]  = Val * round((172 + i * 11) * Aux * DAux / 172, sig_fig)
+                List[i]  = Val * round((1+(54480/((172+30*11)*60*6*4)))*((172 + i * 11)*60*6*4) * Aux * DAux / 172, sig_fig)
     return List
     
 # for debugging purposes
@@ -173,7 +237,7 @@ def ListSubtractConstant(List,Level):
 def Reverter(Value,Level,List):
     A = 1
     if Level > 0:
-        A = 1 + List[Level-1]
+        A += List[Level-1]
     B = Value / A
     C = Value - B
     return B, C
@@ -181,7 +245,7 @@ def Reverter(Value,Level,List):
 def Reverter_Multi(Value,Level_a,List_a,Level_b,List_b):
     A = 1
     if Level_a > 0:
-        A = 1 + List_a[Level_a-1]
+        A += List_a[Level_a-1]
         if Level_b > 0:
             A += List_b[Level_b-1]
     B = Value / A
@@ -225,225 +289,68 @@ def Run_Main():
     
     if Toggle_Stuff['Frag_Base']:
         #Fragment cost stuff
-        A_cost =[50
-        ,15
-        ,18
-        ,20
-        ,23
-        ,25
-        ,28
-        ,30
-        ,33
-        ,100
-        ,40
-        ,45
-        ,50
-        ,55
-        ,60
-        ,65
-        ,70
-        ,75
-        ,80
-        ,175
-        ,85
-        ,90
-        ,95
-        ,100
-        ,105
-        ,110
-        ,115
-        ,120
-        ,125
-        ,250]
-        
-        B_cost = [75
-        ,23
-        ,27
-        ,30
-        ,34
-        ,38
-        ,42
-        ,45
-        ,49
-        ,150
-        ,60
-        ,68
-        ,75
-        ,83
-        ,90
-        ,98
-        ,105
-        ,113
-        ,120
-        ,263
-        ,128
-        ,135
-        ,143
-        ,150
-        ,158
-        ,165
-        ,173
-        ,180
-        ,188
-        ,375]
-        
-        # 0.01 is simply just to avoid a divide by 0 error
-        C_cost = [0.01
-        ,30
-        ,35
-        ,40
-        ,45
-        ,50
-        ,55
-        ,60
-        ,65
-        ,200
-        ,80
-        ,90
-        ,100
-        ,110
-        ,120
-        ,130
-        ,140
-        ,150
-        ,160
-        ,350
-        ,170
-        ,180
-        ,190
-        ,200
-        ,210
-        ,220
-        ,230
-        ,240
-        ,250
-        ,500]
+        A_cost = [50,15,18,20,23,25,28,30,33,100,40,45,50,55,60,65,70,75,80,175,85,90,95,100,105,110,115,120,125,250]
+        B_cost = [75,23,27,30,34,38,42,45,49,150,60,68,75,83,90,98,105,113,120,263,128,135,143,150,158,165,173,180,188,375]
+        C_cost = [100,30,35,40,45,50,55,60,65,200,80,90,100,110,120,130,140,150,160,350,170,180,190,200,210,220,230,240,250,500]
+        D_cost = [125,38,44,50,57,63,69,75,82,300,110,124,138,152,165,179,193,207,220,525,234,248,262,275,289,303,317,330,344,750]
     else:
         #Energy cost stuff
-        A_cost =[3
-        ,1
-        ,1
-        ,1
-        ,1
-        ,1
-        ,1
-        ,2
-        ,2
-        ,5
-        ,2
-        ,2
-        ,2
-        ,2
-        ,2
-        ,2
-        ,2
-        ,2
-        ,3
-        ,8
-        ,3
-        ,3
-        ,3
-        ,3
-        ,3
-        ,3
-        ,3
-        ,3
-        ,4
-        ,10]
-        
-        B_cost = [4
-        ,1
-        ,1
-        ,1
-        ,2
-        ,2
-        ,2
-        ,3
-        ,3
-        ,8
-        ,3
-        ,3
-        ,3
-        ,3
-        ,3
-        ,3
-        ,3
-        ,3
-        ,4
-        ,12
-        ,4
-        ,4
-        ,4
-        ,4
-        ,4
-        ,5
-        ,5
-        ,5
-        ,6
-        ,15]
-        
-        # 0.01 is simply just to avoid a divide by 0 error
-        C_cost = [0.01
-        ,1
-        ,1
-        ,1
-        ,2
-        ,2
-        ,2
-        ,3
-        ,3
-        ,10
-        ,3
-        ,3
-        ,4
-        ,4
-        ,4
-        ,4
-        ,4
-        ,4
-        ,5
-        ,15
-        ,5
-        ,5
-        ,5
-        ,5
-        ,5
-        ,6
-        ,6
-        ,6
-        ,7
-        ,20]
+        A_cost = [3,1,1,1,1,1,1,2,2,5,2,2,2,2,2,2,2,2,3,8,3,3,3,3,3,3,3,3,4,10]
+        B_cost = [4,1,1,1,2,2,2,3,3,8,3,3,3,3,3,3,3,3,4,12,4,4,4,4,4,5,5,5,6,15]
+        C_cost = [5,1,1,1,2,2,2,3,3,10,3,3,4,4,4,4,4,4,5,15,5,5,5,5,5,6,6,6,7,20]
+        D_cost = [7,2,2,2,3,3,3,5,5,14,5,5,6,6,6,6,6,6,7,17,7,7,7,7,7,9,9,9,10,20]
 
     A_1_boost   = 30 * [0]
     A_2a_boost   = 30 * [0]
     A_2b_boost   = 30 * [0]
     A_2c_boost   = 30 * [0]
     A_2_boost   = 30 * [0]
+    A_3a_boost   = 30 * [0]
+    A_3b_boost   = 30 * [0]
+    A_3c_boost   = 30 * [0]
+    A_3_boost   = 30 * [0]
+    A_4a_boost   = 30 * [0]
+    A_4b_boost   = 30 * [0]
+    A_4c_boost   = 30 * [0]
+    A_4d_boost   = 30 * [0]
+    A_4_boost   = 30 * [0]
     B_1_boost   = 30 * [0]
     B_2_boost   = 30 * [0]
     B_3_boost   = 30 * [0]
     B_4_boost   = 30 * [0]
     C_1_boost   = 30 * [0]
+    C_2_boost   = 30 * [0]
+    D_1_boost   = 30 * [0]
+
     BoostArray  = {
         'A_1'   :   0,
         'A_2'   :   0,
+        'A_3'   :   0,
+        'A_4'   :   0,
         'B_1'   :   0,
         'B_2'   :   0,
         'B_3'   :   0,
         'B_4'   :   0,
         'C_1'   :   0,
+        'D_1'   :   0,
         }
     CostArray   = {
         'A_1'   :   0,
         'A_2'   :   0,
+        'A_3'   :   0,
+        'A_4'   :   0,
         'B_1'   :   0,
         'B_2'   :   0,
         'B_3'   :   0,
         'B_4'   :   0,
         'C_1'   :   0,
+        'D_1'   :   0
         }
     Final_List  = []
     C_1_Changed = False
+
+    if Level_Distribution['A_1_Level'] > 0 and Level_Distribution['A_2_Level'] > 0 and Level_Distribution['A_3_Level'] > 0 and Level_Distribution['A_4_Level'] > 0:
+        Toggle_Stuff["ForceMasteryA1234"] = False
 
     # Mod Values are the skill BA contributions if there were no 6th progress except for origin(makes the math simplier)
     # if Level_Distribution['C_1_Level'] = 0 then that means you got a naked skill tree so everything is by default 0
@@ -452,106 +359,246 @@ def Run_Main():
         Level_Distribution['C_1_Level'] = 1
         C_1_Changed = True
         Amod_1  = Damage_Distribution['A_1'] / ( 1 + Damage_Distribution['C_1'])
+        
         Amod_2a = Damage_Distribution['A_2a'] / ( 1 + Damage_Distribution['C_1'])
         Amod_2b = Damage_Distribution['A_2b'] / ( 1 + Damage_Distribution['C_1'])
         Amod_2c = Damage_Distribution['A_2c'] / ( 1 + Damage_Distribution['C_1'])
+        
+        Amod_3a = Damage_Distribution['A_3a'] / ( 1 + Damage_Distribution['C_1'])
+        Amod_3b = Damage_Distribution['A_3b'] / ( 1 + Damage_Distribution['C_1'])
+        Amod_3c = Damage_Distribution['A_3c'] / ( 1 + Damage_Distribution['C_1'])
+        
+        Amod_4a = Damage_Distribution['A_4a'] / ( 1 + Damage_Distribution['C_1'])
+        Amod_4b = Damage_Distribution['A_4b'] / ( 1 + Damage_Distribution['C_1'])
+        Amod_4c = Damage_Distribution['A_4c'] / ( 1 + Damage_Distribution['C_1'])
+        Amod_4d = Damage_Distribution['A_4d'] / ( 1 + Damage_Distribution['C_1'])
+        
         Bmod_1  = Damage_Distribution['B_1'] / ( 1 + Damage_Distribution['C_1'])
         Bmod_2  = Damage_Distribution['B_2'] / ( 1 + Damage_Distribution['C_1'])
         Bmod_3  = Damage_Distribution['B_3'] / ( 1 + Damage_Distribution['C_1'])
         Bmod_4  = Damage_Distribution['B_4'] / ( 1 + Damage_Distribution['C_1'])
+        
         # in the original script A_1 is for Gungnir(Dark Knight) which has a IED boost component
         # The "Aux" values are multipliers that are meant to compensate for these extra features
         # if there are no auxilary features, just put 1 for the skill
         A_1_Aux         = 1
         A_2_Aux         = 1
+        A_3_Aux         = 1
+        A_4_Aux         = 1
         B_1_Aux         = 1
         B_2_Aux         = 1
         B_3_Aux         = 1
         B_4_Aux         = 1
         C_1_Aux         = 1
+        C_2_Aux         = 1
+        D_1_Aux         = 1
+        
         A_1_boost = Fill_Boost(A_1_boost,"A1",A_1_Aux ,Amod_1 ,0  ,len(A_cost))
+        
         A_2a_boost = Fill_Boost(A_2a_boost,"A2a",A_2_Aux ,Amod_2a ,0  ,len(A_cost))
         A_2b_boost = Fill_Boost(A_2b_boost,"A2b",A_2_Aux ,Amod_2b ,0  ,len(A_cost))
         A_2c_boost = Fill_Boost(A_2c_boost,"A2c",A_2_Aux ,Amod_2c ,0  ,len(A_cost))
         A_2_boost = [sum(values) for values in zip(A_2a_boost,A_2b_boost,A_2c_boost)]
+
+        A_3a_boost = Fill_Boost(A_3a_boost,"A3a",A_3_Aux ,Amod_3a ,0  ,len(A_cost))
+        A_3b_boost = Fill_Boost(A_3b_boost,"A3b",A_3_Aux ,Amod_3b ,0  ,len(A_cost))
+        A_3c_boost = Fill_Boost(A_3c_boost,"A3c",A_3_Aux ,Amod_3c ,0  ,len(A_cost))
+        A_3_boost = [sum(values) for values in zip(A_3a_boost,A_3b_boost,A_3c_boost)]
+
+        A_4a_boost = Fill_Boost(A_4a_boost,"A4a",A_4_Aux ,Amod_4a ,0  ,len(A_cost))
+        A_4b_boost = Fill_Boost(A_4b_boost,"A4b",A_4_Aux ,Amod_4b ,0  ,len(A_cost))
+        A_4c_boost = Fill_Boost(A_4c_boost,"A4c",A_4_Aux ,Amod_4c ,0  ,len(A_cost))
+        A_4d_boost = Fill_Boost(A_4d_boost,"A4d",A_4_Aux ,Amod_4d ,0  ,len(A_cost))
+        A_4_boost = [sum(values) for values in zip(A_4a_boost,A_4b_boost,A_4c_boost,A_4d_boost)]
+        
         B_1_boost = Fill_Boost(B_1_boost,"B",B_1_Aux ,Bmod_1 ,0  ,len(B_cost))
         B_2_boost = Fill_Boost(B_2_boost,"B",B_2_Aux ,Bmod_2 ,0  ,len(B_cost))
         B_3_boost = Fill_Boost(B_3_boost,"B",B_3_Aux ,Bmod_3 ,0  ,len(B_cost))
         B_4_boost = Fill_Boost(B_4_boost,"B",B_4_Aux ,Bmod_4 ,0  ,len(B_cost))
-        C_1_boost = Fill_Boost(C_1_boost,"C",C_1_Aux ,Damage_Distribution['C_1']    ,0  ,len(C_cost))
+        
+        C_1_boost = Fill_Boost(C_1_boost,"C_1",C_1_Aux ,Damage_Distribution['C_1']    ,0  ,len(C_cost))
+        C_2_boost = Fill_Boost(C_2_boost,"C_2",C_2_Aux ,Damage_Distribution['C_2']    ,0  ,len(C_cost))
+
+        D_1_boost = Fill_Boost(D_1_boost,"D_1",D_1_Aux ,Damage_Distribution['D_1']    ,0  ,len(D_cost))
+        
         print('A_1 Base :' + str(round(Amod_1,5)))
+        print('A_2a Base :' + str(round(Amod_2a,5)))
         print('A_2b Base :' + str(round(Amod_2b,5)))
+        print('A_2c Base :' + str(round(Amod_2c,5)))
+        print('A_3a Base :' + str(round(Amod_3a,5)))
+        print('A_3b Base :' + str(round(Amod_3b,5)))
+        print('A_3c Base :' + str(round(Amod_3c,5)))
+        print('A_4a Base :' + str(round(Amod_4a,5)))
+        print('A_4b Base :' + str(round(Amod_4b,5)))
+        print('A_4c Base :' + str(round(Amod_4c,5)))
+        print('A_4d Base :' + str(round(Amod_4d,5)))
         print('B_1 Base :' + str(round(Bmod_1,5)))
         print('B_2 Base :' + str(round(Bmod_2,5)))
         print('B_3 Base :' + str(round(Bmod_3,5)))
         print('B_4 Base :' + str(round(Bmod_4,5)))
         print('C_1 Base :' + str(round(C_1,5)))
+        print('C_2 Base :' + str(round(C_1,5)))
     else:
-    # where i left off ------------------------------------------
         A_1_Aux         = 1
         A_2_Aux         = 1
+        A_3_Aux         = 1
+        A_4_Aux         = 1
         B_1_Aux         = 1
         B_2_Aux         = 1
         B_3_Aux         = 1
         B_4_Aux         = 1
         C_1_Aux         = 1
+        C_2_Aux         = 1
+        D_1_Aux         = 1
+        
+        # if there is a C_1 level then the Mod values are just the damage distribution values since they are already being boosted by C_1
         A_1_Multi_boost = Fill_Boost(A_1_boost,"A1",A_1_Aux ,1 ,0  ,len(A_cost))
+        
         A_2a_Multi_boost = Fill_Boost(A_2a_boost,"A2a",A_2_Aux ,1 ,0  ,len(A_cost))
         A_2b_Multi_boost = Fill_Boost(A_2b_boost,"A2b",A_2_Aux ,1 ,0  ,len(A_cost))
         A_2c_Multi_boost = Fill_Boost(A_2c_boost,"A2c",A_2_Aux ,1 ,0  ,len(A_cost))
+
+        A_3a_Multi_boost = Fill_Boost(A_3a_boost,"A3a",A_3_Aux ,1 ,0  ,len(A_cost))
+        A_3b_Multi_boost = Fill_Boost(A_3b_boost,"A3b",A_3_Aux ,1 ,0  ,len(A_cost))
+        A_3c_Multi_boost = Fill_Boost(A_3c_boost,"A3c",A_3_Aux ,1 ,0  ,len(A_cost))
+        
+        A_4a_Multi_boost = Fill_Boost(A_4a_boost,"A4a",A_4_Aux ,1 ,0  ,len(A_cost))
+        A_4b_Multi_boost = Fill_Boost(A_4b_boost,"A4b",A_4_Aux ,1 ,0  ,len(A_cost))
+        A_4c_Multi_boost = Fill_Boost(A_4c_boost,"A4c",A_4_Aux ,1 ,0  ,len(A_cost))
+        A_4d_Multi_boost = Fill_Boost(A_4c_boost,"A4d",A_4_Aux ,1 ,0  ,len(A_cost))
+        
         B_1_Multi_boost = Fill_Boost(B_1_boost,"B",B_1_Aux ,1 ,0  ,len(B_cost))
         B_2_Multi_boost = Fill_Boost(B_2_boost,"B",B_2_Aux ,1 ,0  ,len(B_cost))
         B_3_Multi_boost = Fill_Boost(B_3_boost,"B",B_3_Aux ,1 ,0  ,len(B_cost))
         B_4_Multi_boost = Fill_Boost(B_4_boost,"B",B_4_Aux ,1 ,0  ,len(B_cost))
-        C_1_Multi_boost = Fill_Boost(C_1_boost,"C",C_1_Aux ,1 ,0  ,len(C_cost))
+        
+        C_1_Multi_boost = Fill_Boost(C_1_boost,"C_1",C_1_Aux ,1 ,0  ,len(C_cost))
         C_1_Multi_boost = [x - C_1_Multi_boost[0] for x in C_1_Multi_boost]
-        Revert_Amod_1,Delta_A_1  = Reverter_Multi(Damage_Distribution['A_1'],Level_Distribution['A_1_Level'],A_1_Multi_boost,Level_Distribution['A_2_Level'],A_2a_Multi_boost)
-        Revert_Amod_2b,Delta_A_2b  = Reverter(Damage_Distribution['A_2b'],Level_Distribution['A_2_Level'],A_2b_Multi_boost)
-        Revert_Amod_2c,Delta_A_2c  = Reverter(Damage_Distribution['A_2c'],Level_Distribution['A_2_Level'],A_2c_Multi_boost)
+        C_2_Multi_boost = Fill_Boost(C_2_boost,"C_2",C_2_Aux ,1 ,0  ,len(C_cost))
+
+        D_1_Multi_boost = Fill_Boost(D_1_boost,"D_1",D_1_Aux ,1 ,0  ,len(D_cost))
+        
+        # Compute revert values for each skill
+        Revert_Amod_1,Delta_A_1    = Reverter_Multi(Damage_Distribution['A_1'] ,Level_Distribution['A_1_Level'],A_1_Multi_boost,Level_Distribution['A_2_Level'],A_2a_Multi_boost)
+        
+        Revert_Amod_2a,Delta_A_2a  = Reverter_Multi(Damage_Distribution['A_2a'],Level_Distribution['A_1_Level'],A_1_Multi_boost,Level_Distribution['A_2_Level'],A_2a_Multi_boost)
+        Revert_Amod_2b,Delta_A_2b  = Reverter_Multi(Damage_Distribution['A_2b'],Level_Distribution['A_2_Level'],A_2b_Multi_boost,Level_Distribution['A_4_Level'],A_4b_Multi_boost)
+        Revert_Amod_2c,Delta_A_2c  =       Reverter(Damage_Distribution['A_2c'],Level_Distribution['A_2_Level'],A_2c_Multi_boost)
+        
+        Revert_Amod_3a,Delta_A_3a  = Reverter_Multi(Damage_Distribution['A_3a'],Level_Distribution['A_3_Level'],A_3a_Multi_boost,Level_Distribution['A_4_Level'],A_4c_Multi_boost)
+        Revert_Amod_3b,Delta_A_3b  = Reverter_Multi(Damage_Distribution['A_3b'],Level_Distribution['A_3_Level'],A_3b_Multi_boost,Level_Distribution['A_4_Level'],A_4d_Multi_boost)
+        Revert_Amod_3c,Delta_A_3c  =       Reverter(Damage_Distribution['A_3c'],Level_Distribution['A_3_Level'],A_3c_Multi_boost)
+        
+        Revert_Amod_4a,Delta_A_4a  =       Reverter(Damage_Distribution['A_4a'],Level_Distribution['A_4_Level'],A_4a_Multi_boost)
+        Revert_Amod_4b,Delta_A_4b  = Reverter_Multi(Damage_Distribution['A_4b'],Level_Distribution['A_2_Level'],A_2b_Multi_boost,Level_Distribution['A_4_Level'],A_4b_Multi_boost)
+        Revert_Amod_4c,Delta_A_4c  = Reverter_Multi(Damage_Distribution['A_4c'],Level_Distribution['A_3_Level'],A_3a_Multi_boost,Level_Distribution['A_4_Level'],A_4c_Multi_boost)
+        Revert_Amod_4d,Delta_A_4d  = Reverter_Multi(Damage_Distribution['A_4d'],Level_Distribution['A_3_Level'],A_3b_Multi_boost,Level_Distribution['A_4_Level'],A_4d_Multi_boost)
+
         Revert_Bmod_1,Delta_B_1  = Reverter(Damage_Distribution['B_1'],Level_Distribution['B_1_Level'],B_1_Multi_boost) 
         Revert_Bmod_2,Delta_B_2  = Reverter(Damage_Distribution['B_2'],Level_Distribution['B_2_Level'],B_2_Multi_boost)
         Revert_Bmod_3,Delta_B_3  = Reverter(Damage_Distribution['B_3'],Level_Distribution['B_3_Level'],B_3_Multi_boost)
         Revert_Bmod_4,Delta_B_4  = Reverter(Damage_Distribution['B_4'],Level_Distribution['B_4_Level'],B_4_Multi_boost)
+
         Revert_C_1   ,Delta_C_1  = Reverter(Damage_Distribution['C_1'],Level_Distribution['C_1_Level'],C_1_Multi_boost)
+        Revert_C_2   ,Delta_C_2  = Reverter(Damage_Distribution['C_2'],Level_Distribution['C_2_Level'],C_2_Multi_boost)
+
+        Revert_D_1   ,Delta_D_1  = Reverter(Damage_Distribution['D_1'],Level_Distribution['D_1_Level'],D_1_Multi_boost)
             
-        Delta_T = Delta_A_1 + Delta_A_2b + Delta_A_2c + Delta_B_1 + Delta_B_2 + Delta_B_3 + Delta_B_4 + Delta_C_1
+        Delta_T = Delta_A_1 + Delta_A_2b + Delta_A_2c + Delta_A_3a + Delta_A_3b + Delta_A_3c + Delta_A_4a + Delta_B_1 + Delta_B_2 + Delta_B_3 + Delta_B_4 + Delta_C_1 + Delta_C_2 + Delta_D_1
         
+        # Rebugging script to check if the revert values are correct
+        # for i in range(len(D_1_Multi_boost)):
+        #     print(str(i) + ":" + str(D_1_Multi_boost[i]))
+        #print("")
+        #print('Delta_A_1: '  + str(Revert_Amod_1) + ' : ' + str(Delta_A_1 ) + ' : ')
+        #print('Delta_A_2a: ' + str(Revert_Amod_2a) + ' : ' + str(Delta_A_2a) + ' : ')
+        #print('Delta_A_2b: ' + str(Revert_Amod_2b) + ' : ' + str(Delta_A_2b) + ' : ')
+        #print('Delta_A_2c: ' + str(Revert_Amod_2c) + ' : ' + str(Delta_A_2c) + ' : ')
+        #print('Delta_A_3a: ' + str(Revert_Amod_3a) + ' : ' + str(Delta_A_3a) + ' : ')
+        #print('Delta_A_3b: ' + str(Revert_Amod_3b) + ' : ' + str(Delta_A_3b) + ' : ')
+        #print('Delta_A_3c: ' + str(Revert_Amod_3c) + ' : ' + str(Delta_A_3c) + ' : ')
+        #print('Delta_A_4a: ' + str(Revert_Amod_4a) + ' : ' + str(Delta_A_4a) + ' : ')
+        #print('Delta_A_4b: ' + str(Revert_Amod_4b) + ' : ' + str(Delta_A_4b) + ' : ')
+        #print('Delta_A_4c: ' + str(Revert_Amod_4c) + ' : ' + str(Delta_A_4c) + ' : ')
+        #print('Delta_A_4d: ' + str(Revert_Amod_4d) + ' : ' + str(Delta_A_4d) + ' : ')
+        #print('Delta_Sum : ' + str(Delta_T))
+
         Amod_1  = Revert_Amod_1 * ( 1 + Delta_T )
+        Amod_2a  = Revert_Amod_2a * ( 1 + Delta_T )
         Amod_2b  = Revert_Amod_2b * ( 1 + Delta_T )
         Amod_2c  = Revert_Amod_2c * ( 1 + Delta_T )
+        Amod_3a  = Revert_Amod_3a * ( 1 + Delta_T )
+        Amod_3b  = Revert_Amod_3b * ( 1 + Delta_T )
+        Amod_3c  = Revert_Amod_3c * ( 1 + Delta_T )
+        Amod_4a  = Revert_Amod_4a * ( 1 + Delta_T )
+        Amod_4b  = Revert_Amod_4b * ( 1 + Delta_T )
+        Amod_4c  = Revert_Amod_4c * ( 1 + Delta_T )
+        Amod_4d  = Revert_Amod_4d * ( 1 + Delta_T )
         Bmod_1  = Revert_Bmod_1 * ( 1 + Delta_T )
         Bmod_2  = Revert_Bmod_2 * ( 1 + Delta_T )
         Bmod_3  = Revert_Bmod_3 * ( 1 + Delta_T )
         Bmod_4  = Revert_Bmod_4 * ( 1 + Delta_T )
         C_1     = Revert_C_1 * ( 1 + Delta_T )
+        Cmod_2     = Revert_C_2 * ( 1 + Delta_T )
+        Dmod_1     = Revert_D_1 * ( 1 + Delta_T )
         
         A_1_boost = Fill_Boost(A_1_boost,"A1",A_1_Aux ,Amod_1 ,0  ,len(A_cost))
-        A_2a_boost = Fill_Boost(A_2a_boost,"A2a",A_2_Aux ,Amod_1 ,0  ,len(A_cost))
+        
+        A_2a_boost = Fill_Boost(A_2a_boost,"A2a",A_2_Aux ,Amod_2a ,0  ,len(A_cost))
         A_2b_boost = Fill_Boost(A_2b_boost,"A2b",A_2_Aux ,Amod_2b ,0  ,len(A_cost))
         A_2c_boost = Fill_Boost(A_2c_boost,"A2c",A_2_Aux ,Amod_2c ,0  ,len(A_cost))
         A_2_boost = [sum(values) for values in zip(A_2a_boost,A_2b_boost,A_2c_boost)]
+
+        A_3a_boost = Fill_Boost(A_3a_boost,"A3a",A_3_Aux ,Amod_3a ,0  ,len(A_cost))
+        A_3b_boost = Fill_Boost(A_3b_boost,"A3b",A_3_Aux ,Amod_3b ,0  ,len(A_cost))
+        A_3c_boost = Fill_Boost(A_3c_boost,"A3c",A_3_Aux ,Amod_3c ,0  ,len(A_cost))
+        A_3_boost = [sum(values) for values in zip(A_3a_boost,A_3b_boost,A_3c_boost)]
+
+        A_4a_boost = Fill_Boost(A_4a_boost,"A4a",A_4_Aux ,Amod_4a ,0  ,len(A_cost))
+        A_4b_boost = Fill_Boost(A_4b_boost,"A4b",A_4_Aux ,Amod_4b ,0  ,len(A_cost))
+        A_4c_boost = Fill_Boost(A_4c_boost,"A4c",A_4_Aux ,Amod_4c ,0  ,len(A_cost))
+        A_4d_boost = Fill_Boost(A_4d_boost,"A4d",A_4_Aux ,Amod_4d ,0  ,len(A_cost))
+        A_4_boost = [sum(values) for values in zip(A_4a_boost,A_4b_boost,A_4c_boost,A_4d_boost)]
+        
         B_1_boost = Fill_Boost(B_1_boost,"B",B_1_Aux ,Bmod_1 ,0  ,len(B_cost))
         B_2_boost = Fill_Boost(B_2_boost,"B",B_2_Aux ,Bmod_2 ,0  ,len(B_cost))
         B_3_boost = Fill_Boost(B_3_boost,"B",B_3_Aux ,Bmod_3 ,0  ,len(B_cost))
         B_4_boost = Fill_Boost(B_4_boost,"B",B_4_Aux ,Bmod_4 ,0  ,len(B_cost))
-        C_1_boost = Fill_Boost(C_1_boost,"C",C_1_Aux ,Damage_Distribution['C_1']    ,0  ,len(C_cost))
 
-        print('A_1 Base :' + str(round(Amod_1,5)))
-        print('A_2b Base :' + str(round(Amod_2b,5)))
-        print('B_1 Base :' + str(round(Bmod_1,5)))
-        print('B_2 Base :' + str(round(Bmod_2,5)))
-        print('B_3 Base :' + str(round(Bmod_3,5)))
-        print('B_4 Base :' + str(round(Bmod_4,5)))
-        print('C_1 Base :' + str(round(C_1,5)))
+        C_1_boost = Fill_Boost(C_1_boost,"C_1",C_1_Aux ,Damage_Distribution['C_1']    ,0  ,len(C_cost))
+        C_2_boost = Fill_Boost(C_2_boost,"C_2",C_2_Aux ,Cmod_2    ,0  ,len(C_cost))
 
-#        for i in range(len(C_1_boost)):
-#            print(C_1_boost[i])
+        D_1_boost = Fill_Boost(D_1_boost,"D_1",D_1_Aux ,Dmod_1    ,0  ,len(D_cost))
+        for i in range(len(D_1_Multi_boost)):
+            print(str(i) + ":" + str(D_1_Multi_boost[i]))
+
+        # Debugging script to check if the new mod values are correct
+        #print('A_1 Base :' + str(round(Amod_1,5)))
+        #print('A_2a Base :' + str(round(Amod_2a,5)))
+        #print('A_2b Base :' + str(round(Amod_2b,5)))
+        #print('A_2c Base :' + str(round(Amod_2c,5)))
+        #print('A_3a Base :' + str(round(Amod_3a,5)))
+        #print('A_3b Base :' + str(round(Amod_3b,5)))
+        #print('A_3c Base :' + str(round(Amod_3c,5)))
+        #print('A_4a Base :' + str(round(Amod_4a,5)))
+        #print('A_4b Base :' + str(round(Amod_4b,5)))
+        #print('A_4c Base :' + str(round(Amod_4c,5)))
+        #print('A_4d Base :' + str(round(Amod_4d,5)))
+        #print('B_1 Base :' + str(round(Bmod_1,5)))
+        #print('B_2 Base :' + str(round(Bmod_2,5)))
+        #print('B_3 Base :' + str(round(Bmod_3,5)))
+        #print('B_4 Base :' + str(round(Bmod_4,5)))
+        #print('C_1 Base :' + str(round(C_1,5)))
 
     # input initial boost and cost values
     if Level_Distribution['A_1_Level'] != 0:
         BoostArray['A_1'] = A_1_boost[Level_Distribution['A_1_Level']-1]
     if Level_Distribution['A_2_Level'] != 0:
         BoostArray['A_2'] = A_2_boost[Level_Distribution['A_2_Level']-1]
+    if Level_Distribution['A_3_Level'] != 0:
+        BoostArray['A_3'] = A_3_boost[Level_Distribution['A_3_Level']-1]
+    if Level_Distribution['A_4_Level'] != 0:
+        BoostArray['A_4'] = A_4_boost[Level_Distribution['A_4_Level']-1]
     if Level_Distribution['B_1_Level'] != 0:
         BoostArray['B_1'] = B_1_boost[Level_Distribution['B_1_Level']-1]
     if Level_Distribution['B_2_Level'] != 0:
@@ -564,11 +611,19 @@ def Run_Main():
         BoostArray['C_1'] = C_1_boost[Level_Distribution['C_1_Level']-1]
     else:
         BoostArray['C_1'] = C_1
+    if Level_Distribution['C_2_Level'] != 0:
+        BoostArray['C_2'] = C_2_boost[Level_Distribution['C_2_Level']-1]
+    if Level_Distribution['D_1_Level'] != 0:
+        BoostArray['D_1'] = D_1_boost[Level_Distribution['D_1_Level']-1]
         
     if Level_Distribution['A_1_Level'] != 0:
         CostArray['A_1'] = sum_entries_up_to_number(A_cost,Level_Distribution['A_1_Level'] - 1)
     if Level_Distribution['A_2_Level'] != 0:
         CostArray['A_2'] = sum_entries_up_to_number(A_cost,Level_Distribution['A_2_Level'] - 1)
+    if Level_Distribution['A_3_Level'] != 0:
+        CostArray['A_3'] = sum_entries_up_to_number(A_cost,Level_Distribution['A_3_Level'] - 1)
+    if Level_Distribution['A_4_Level'] != 0:
+        CostArray['A_4'] = sum_entries_up_to_number(A_cost,Level_Distribution['A_4_Level'] - 1)
     if Level_Distribution['B_1_Level'] != 0:
         CostArray['B_1'] = sum_entries_up_to_number(B_cost,Level_Distribution['B_1_Level'] - 1)
     if Level_Distribution['B_2_Level'] != 0:
@@ -581,6 +636,10 @@ def Run_Main():
         CostArray['C_1'] = sum_entries_up_to_number(C_cost,Level_Distribution['C_1_Level'] - 1)
     else:
         CostArray['C_1'] = 0
+    if Level_Distribution['C_2_Level'] != 0:
+        CostArray['C_2'] = sum_entries_up_to_number(C_cost,Level_Distribution['C_2_Level'] - 1)
+    if Level_Distribution['D_1_Level'] != 0:
+        CostArray['D_1'] = sum_entries_up_to_number(D_cost,Level_Distribution['D_1_Level'] - 1)
 
     if C_1_Changed == False:
         print('Total FD gain at the start : ' + str(round(sum(BoostArray.values()),5)))
@@ -589,74 +648,141 @@ def Run_Main():
     print('Total Resources Spent     : ' + str(round(sum(CostArray.values()),0)))
     print('')
 
-    A_1_was_0 = false
-    if Level_Distribution['A_1_Level' = 0]:
-        A_1_was_0 = true
-        
+    if Toggle_Stuff['ForceMasteryA1234']:
+        PassCount = 0
+        First_A_1 = 0
+        First_A_2 = 0
+        First_A_3 = 0
+        First_A_4 = 0
+    
     # print(Amod_1,Bmod_1,Bmod_2,Bmod_3,Bmod_4,C_1)
-    while Level_Distribution['A_1_Level'] != 30 or Level_Distribution['A_2_Level'] != 30 or Level_Distribution['B_1_Level'] != 30 or Level_Distribution['B_2_Level'] != 30 or Level_Distribution['B_3_Level'] != 30 or Level_Distribution['B_4_Level'] != 30 or Level_Distribution['C_1_Level'] != 30:
+    while not all(value == 30 for value in Level_Distribution.values()):
         A_1_Delta_boost = ListSubtractConstant(A_1_boost,Level_Distribution['A_1_Level'])
         A_2_Delta_boost = ListSubtractConstant(A_2_boost,Level_Distribution['A_2_Level'])
+        A_3_Delta_boost = ListSubtractConstant(A_3_boost,Level_Distribution['A_3_Level'])
+        A_4_Delta_boost = ListSubtractConstant(A_4_boost,Level_Distribution['A_4_Level'])
         B_1_Delta_boost = ListSubtractConstant(B_1_boost,Level_Distribution['B_1_Level'])
         B_2_Delta_boost = ListSubtractConstant(B_2_boost,Level_Distribution['B_2_Level'])
         B_3_Delta_boost = ListSubtractConstant(B_3_boost,Level_Distribution['B_3_Level'])
         B_4_Delta_boost = ListSubtractConstant(B_4_boost,Level_Distribution['B_4_Level'])
         C_1_Delta_boost = ListSubtractConstant(C_1_boost,Level_Distribution['C_1_Level'])
+        C_2_Delta_boost = ListSubtractConstant(C_2_boost,Level_Distribution['C_2_Level'])
+        D_1_Delta_boost = ListSubtractConstant(D_1_boost,Level_Distribution['D_1_Level'])
     #    print("Delta_Boost")
     #    ListPrint(B_3_Delta_boost)
 
         A_1_Tcost = Fill_Costs(A_cost,Level_Distribution['A_1_Level'])
         A_2_Tcost = Fill_Costs(A_cost,Level_Distribution['A_2_Level'])
+        A_3_Tcost = Fill_Costs(A_cost,Level_Distribution['A_3_Level'])
+        A_4_Tcost = Fill_Costs(A_cost,Level_Distribution['A_4_Level'])
         B_1_Tcost = Fill_Costs(B_cost,Level_Distribution['B_1_Level'])
         B_2_Tcost = Fill_Costs(B_cost,Level_Distribution['B_2_Level'])
         B_3_Tcost = Fill_Costs(B_cost,Level_Distribution['B_3_Level'])
         B_4_Tcost = Fill_Costs(B_cost,Level_Distribution['B_4_Level'])
         C_1_Tcost = Fill_Costs(C_cost,Level_Distribution['C_1_Level'])
+        C_2_Tcost = Fill_Costs(C_cost,Level_Distribution['C_2_Level'])
+        D_1_Tcost = Fill_Costs(D_cost,Level_Distribution['D_1_Level'])
     #    print("TCost")
     #    ListPrint(C_1_Tcost)
 
         # divide FD gain over costs
         A_1_BoostOverCost = ListByListDivide(A_1_Delta_boost, A_1_Tcost)
         A_2_BoostOverCost = ListByListDivide(A_2_Delta_boost, A_2_Tcost)
+        A_3_BoostOverCost = ListByListDivide(A_3_Delta_boost, A_3_Tcost)
+        A_4_BoostOverCost = ListByListDivide(A_4_Delta_boost, A_4_Tcost)
         B_1_BoostOverCost = ListByListDivide(B_1_Delta_boost, B_1_Tcost)
         B_2_BoostOverCost = ListByListDivide(B_2_Delta_boost, B_2_Tcost)
         B_3_BoostOverCost = ListByListDivide(B_3_Delta_boost, B_3_Tcost)
         B_4_BoostOverCost = ListByListDivide(B_4_Delta_boost, B_4_Tcost)
         C_1_BoostOverCost = ListByListDivide(C_1_Delta_boost, C_1_Tcost)
+        C_2_BoostOverCost = ListByListDivide(C_2_Delta_boost, C_2_Tcost)
+        D_1_BoostOverCost = ListByListDivide(D_1_Delta_boost, D_1_Tcost)
 
     #    print("DeltaBoost/Cost")
     #    ListPrint(C_1_BoostOverCost)
         # add some ID tags to the lists
         A_1_BoostOverCost = [[i + 1, val, "A_1"] for i, val in enumerate(A_1_BoostOverCost)]
         A_2_BoostOverCost = [[i + 1, val, "A_2"] for i, val in enumerate(A_2_BoostOverCost)]
+        A_3_BoostOverCost = [[i + 1, val, "A_3"] for i, val in enumerate(A_3_BoostOverCost)]
+        A_4_BoostOverCost = [[i + 1, val, "A_4"] for i, val in enumerate(A_4_BoostOverCost)]
         B_1_BoostOverCost = [[i + 1, val, "B_1"] for i, val in enumerate(B_1_BoostOverCost)]
         B_2_BoostOverCost = [[i + 1, val, "B_2"] for i, val in enumerate(B_2_BoostOverCost)]
         B_3_BoostOverCost = [[i + 1, val, "B_3"] for i, val in enumerate(B_3_BoostOverCost)]
         B_4_BoostOverCost = [[i + 1, val, "B_4"] for i, val in enumerate(B_4_BoostOverCost)]
         C_1_BoostOverCost = [[i + 1, val, "C_1"] for i, val in enumerate(C_1_BoostOverCost)]
+        C_2_BoostOverCost = [[i + 1, val, "C_2"] for i, val in enumerate(C_2_BoostOverCost)]
+        D_1_BoostOverCost = [[i + 1, val, "D_1"] for i, val in enumerate(D_1_BoostOverCost)]
 
+        if Toggle_Stuff['ForceMasteryA1234'] == True:
+            if PassCount == 0:
+                for i in range(len(A_1_BoostOverCost)):
+                    if A_1_BoostOverCost[i][0] == 1:
+                        First_A_1 = i
+                        A_1_BoostOverCost.insert(0,A_1_BoostOverCost[First_A_1])
+                        A_1_BoostOverCost[0][1] = 1000
+                        del A_1_BoostOverCost[First_A_1+1]
+                        PassCount += 1
+                        break
+            elif PassCount == 1:
+                for i in range(len(A_2_BoostOverCost)):
+                    if A_2_BoostOverCost[i][0] == 1:
+                        First_A_2 = i
+                        A_2_BoostOverCost.insert(0,A_2_BoostOverCost[First_A_2])
+                        A_2_BoostOverCost[0][1] = 1000
+                        del A_2_BoostOverCost[First_A_2+1]
+                        PassCount += 1
+                        break
+            elif PassCount == 2:
+                for i in range(len(A_3_BoostOverCost)):
+                    if A_3_BoostOverCost[i][0] == 1:
+                        First_A_3 = i
+                        A_3_BoostOverCost.insert(0,A_3_BoostOverCost[First_A_3])
+                        A_3_BoostOverCost[0][1] = 1000
+                        del A_3_BoostOverCost[First_A_3+1]
+                        PassCount += 1
+                        break
+            elif PassCount == 3:
+                for i in range(len(A_4_BoostOverCost)):
+                    if A_4_BoostOverCost[i][0] == 1:
+                        First_A_4 = i
+                        A_4_BoostOverCost.insert(0,A_4_BoostOverCost[First_A_4])
+                        A_4_BoostOverCost[0][1] = 1000
+                        del A_4_BoostOverCost[First_A_4+1]
+                        PassCount += 1
+                        break
+            
         # sort in descending order for total damage / cost    
         A_1_BoostOverCost = sorted(A_1_BoostOverCost, key=lambda x: x[1], reverse = True)
         A_2_BoostOverCost = sorted(A_2_BoostOverCost, key=lambda x: x[1], reverse = True)
+        A_3_BoostOverCost = sorted(A_3_BoostOverCost, key=lambda x: x[1], reverse = True)
+        A_4_BoostOverCost = sorted(A_4_BoostOverCost, key=lambda x: x[1], reverse = True)
         B_1_BoostOverCost = sorted(B_1_BoostOverCost, key=lambda x: x[1], reverse = True)
         B_2_BoostOverCost = sorted(B_2_BoostOverCost, key=lambda x: x[1], reverse = True)
         B_3_BoostOverCost = sorted(B_3_BoostOverCost, key=lambda x: x[1], reverse = True)
         B_4_BoostOverCost = sorted(B_4_BoostOverCost, key=lambda x: x[1], reverse = True)
         C_1_BoostOverCost = sorted(C_1_BoostOverCost, key=lambda x: x[1], reverse = True)
+        C_2_BoostOverCost = sorted(C_2_BoostOverCost, key=lambda x: x[1], reverse = True)
+        D_1_BoostOverCost = sorted(D_1_BoostOverCost, key=lambda x: x[1], reverse = True)
 
         A_1_BoostOverCost_Filtered = SequentialFilter(A_1_BoostOverCost)
         A_2_BoostOverCost_Filtered = SequentialFilter(A_2_BoostOverCost)
+        A_3_BoostOverCost_Filtered = SequentialFilter(A_3_BoostOverCost)
+        A_4_BoostOverCost_Filtered = SequentialFilter(A_4_BoostOverCost)
         B_1_BoostOverCost_Filtered = SequentialFilter(B_1_BoostOverCost)
         B_2_BoostOverCost_Filtered = SequentialFilter(B_2_BoostOverCost)
         B_3_BoostOverCost_Filtered = SequentialFilter(B_3_BoostOverCost)
         B_4_BoostOverCost_Filtered = SequentialFilter(B_4_BoostOverCost)
         C_1_BoostOverCost_Filtered = SequentialFilter(C_1_BoostOverCost)
+        C_2_BoostOverCost_Filtered = SequentialFilter(C_2_BoostOverCost)
+        D_1_BoostOverCost_Filtered = SequentialFilter(D_1_BoostOverCost)
 
         # fuse all the lists
-        MegaList = A_1_BoostOverCost_Filtered + A_2_BoostOverCost_Filtered + B_1_BoostOverCost_Filtered + B_2_BoostOverCost_Filtered + B_3_BoostOverCost_Filtered + B_4_BoostOverCost_Filtered +  C_1_BoostOverCost_Filtered
+        MegaList = A_1_BoostOverCost_Filtered + A_2_BoostOverCost_Filtered + A_3_BoostOverCost_Filtered + A_4_BoostOverCost_Filtered + B_1_BoostOverCost_Filtered + B_2_BoostOverCost_Filtered + B_3_BoostOverCost_Filtered + B_4_BoostOverCost_Filtered +  C_1_BoostOverCost_Filtered +  C_2_BoostOverCost_Filtered + D_1_BoostOverCost_Filtered
         # sort by efficiency
         MegaList = sorted(MegaList, key=lambda x: x[1], reverse = True)
-                
+        # ListPrint(MegaList)
+        # print('')
+            
         # The first entry on the compressed list is a single entry, record the level changes, repeat the process, until everything is level 30
         if MegaList[0][2]   == "A_1":
             Level_Distribution['A_1_Level'] = MegaList[0][0]
@@ -666,6 +792,14 @@ def Run_Main():
             Level_Distribution['A_2_Level'] = MegaList[0][0]
             BoostArray['A_2'] = A_2_boost[Level_Distribution['A_2_Level'] - 1]
             CostArray['A_2'] = sum_entries_up_to_number(A_cost,Level_Distribution['A_2_Level'] - 1)
+        elif MegaList[0][2] == "A_3":
+            Level_Distribution['A_3_Level'] = MegaList[0][0]
+            BoostArray['A_3'] = A_3_boost[Level_Distribution['A_3_Level'] - 1]
+            CostArray['A_3'] = sum_entries_up_to_number(A_cost,Level_Distribution['A_3_Level'] - 1)
+        elif MegaList[0][2] == "A_4":
+            Level_Distribution['A_4_Level'] = MegaList[0][0]
+            BoostArray['A_4'] = A_4_boost[Level_Distribution['A_4_Level'] - 1]
+            CostArray['A_4'] = sum_entries_up_to_number(A_cost,Level_Distribution['A_4_Level'] - 1)
         elif MegaList[0][2] == "B_1":
             Level_Distribution['B_1_Level'] = MegaList[0][0]
             BoostArray['B_1'] = B_1_boost[Level_Distribution['B_1_Level'] - 1]
@@ -686,15 +820,21 @@ def Run_Main():
             Level_Distribution['C_1_Level'] = MegaList[0][0]
             BoostArray['C_1'] = C_1_boost[Level_Distribution['C_1_Level'] - 1]
             CostArray['C_1'] = sum_entries_up_to_number(C_cost,Level_Distribution['C_1_Level'] - 1)
+        elif MegaList[0][2] == "C_2":
+            Level_Distribution['C_2_Level'] = MegaList[0][0]
+            BoostArray['C_2'] = C_2_boost[Level_Distribution['C_2_Level'] - 1]
+            CostArray['C_2'] = sum_entries_up_to_number(C_cost,Level_Distribution['C_2_Level'] - 1)
+        elif MegaList[0][2] == "D_1":
+            Level_Distribution['D_1_Level'] = MegaList[0][0]
+            BoostArray['D_1'] = D_1_boost[Level_Distribution['D_1_Level'] - 1]
+            CostArray['D_1'] = sum_entries_up_to_number(D_cost,Level_Distribution['D_1_Level'] - 1)
             
         BoostArraySum = round(sum(BoostArray.values()),5)
         CostArraySum = round(sum(CostArray.values()))
         MegaList[0].append(BoostArraySum)
         MegaList[0].append(CostArraySum)
         Final_List.append(MegaList[0])
-    
-    ListPrint(Final_List)
-
+        
     if Toggle_Stuff['Hexa_Stat_Include'] == True:
         Average_Costs = [
         [323,5],                   # 5 or lower
@@ -933,25 +1073,6 @@ def Run_Main():
                 
             Final_List = Final_List + Refined_List
             Final_List = sorted(Final_List, key=lambda x: x[1], reverse = True)
-#    ListPrint(Final_List)
-
-    if Toggle_Stuff['Force_A1_Before_A2'] == True:
-        # Check if A_1 occurs first
-        for i in range(len(Final_List)):
-            if Final_List[i][2] == 'A_1':
-                # A_1 occured first, continue on
-                break
-            elif Final_List[i][2] == 'A_2':
-                # A_2 occured first, insert A_1 level 1 before A_2 then break
-                First_A_1 = 0
-                for j in range(len(Final_List)):
-                    if Final_List[j][2] == 'A_1':
-                        First_A_1 = j
-                        break
-                
-                Final_List.insert(i,Final_List[First_A_1])
-                del Final_List[First_A_1+1]
-                break
             
     # merge any consecutive patterns A_1 [0,1,2,3,4,5] -> A_1 [5]
     Compressed_Final_List = [Final_List[0]]  # Initialize with the first element
@@ -975,7 +1096,7 @@ def Run_Main():
     ListPrint(Compressed_Final_List)
     # printing stuff
 
-    grid_width, grid_height = 11, 4  # You can adjust these dimensions as needed
+    grid_width, grid_height = 15, 4  # You can adjust these dimensions as needed
     spacing = 20
 
     # Calculate the size of each image and the spacing
@@ -998,11 +1119,15 @@ def Run_Main():
     # Construct paths for image files
     image_A_1 = Image.open(os.path.join(current_directory, "A_1.png"))
     image_A_2 = Image.open(os.path.join(current_directory, "A_2.png"))
+    image_A_3 = Image.open(os.path.join(current_directory, "A_3.png"))
+    image_A_4 = Image.open(os.path.join(current_directory, "A_4.png"))
     image_B_1 = Image.open(os.path.join(current_directory, "B_1.png"))
     image_B_2 = Image.open(os.path.join(current_directory, "B_2.png"))
     image_B_3 = Image.open(os.path.join(current_directory, "B_3.png"))
     image_B_4 = Image.open(os.path.join(current_directory, "B_4.png"))
     image_C_1 = Image.open(os.path.join(current_directory, "C_1.png"))
+    image_C_2 = Image.open(os.path.join(current_directory, "C_2.png"))
+    image_D_1 = Image.open(os.path.join(current_directory, "D_1.png"))
     image_Stat = Image.open(os.path.join(current_directory, "Stat.png"))
 
     background_image = Image.open("Background.png")
@@ -1103,6 +1228,10 @@ def Run_Main():
                 canvas.paste(image_A_1.resize((image_size, image_size)), (x, y))
             elif Compressed_Final_List[entry][2] == "A_2":
                 canvas.paste(image_A_2.resize((image_size, image_size)), (x, y))
+            elif Compressed_Final_List[entry][2] == "A_3":
+                canvas.paste(image_A_3.resize((image_size, image_size)), (x, y))
+            elif Compressed_Final_List[entry][2] == "A_4":
+                canvas.paste(image_A_4.resize((image_size, image_size)), (x, y))
             elif Compressed_Final_List[entry][2] == "B_1":
                 canvas.paste(image_B_1.resize((image_size, image_size)), (x, y))
             elif Compressed_Final_List[entry][2] == "B_2":
@@ -1113,6 +1242,10 @@ def Run_Main():
                 canvas.paste(image_B_4.resize((image_size, image_size)), (x, y))
             elif Compressed_Final_List[entry][2] == "C_1":
                 canvas.paste(image_C_1.resize((image_size, image_size)), (x, y))
+            elif Compressed_Final_List[entry][2] == "C_2":
+                canvas.paste(image_C_2.resize((image_size, image_size)), (x, y))
+            elif Compressed_Final_List[entry][2] == "D_1":
+                canvas.paste(image_D_1.resize((image_size, image_size)), (x, y))
             elif Compressed_Final_List[entry][2] == "Stat Core":
                 canvas.paste(image_Stat.resize((image_size, image_size)), (x, y))
                 
