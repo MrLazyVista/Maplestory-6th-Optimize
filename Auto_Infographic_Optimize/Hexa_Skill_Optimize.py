@@ -18,7 +18,7 @@ import tkinter as tk
 # Energy based optimization Toggle_Stuff['Frag_Base'] = False
 # Optimize for rerolling Hexa Core = True
 Toggle_Stuff = {
-    'Frag_Base'         :True,
+    'Frag_Base'         :False,
     'Hexa_Stat_Include' :True,
     'Hexa_Maxed'        :False,
     'ForceMasteryA1234' :True,
@@ -1171,6 +1171,11 @@ def Run_Main():
             adjusted_final_list.append(["Unlock", item[1], "Stat Core III"])
 
     Compressed_Final_List = adjusted_final_list
+    if Toggle_Stuff['Frag_Base'] == False:
+        Compressed_Final_List = [
+            item for item in Compressed_Final_List
+            if not (isinstance(item[0], str) and (item[0].startswith("Until ") or item[0] == "Max it"))
+        ]
     # Apply the formatting to each sublist
     Compressed_Final_List = [format_scientific_notation(sublist) for sublist in Compressed_Final_List]
 
@@ -1387,11 +1392,7 @@ def Run_Main():
             entry += 1
             if entry == len(Compressed_Final_List):
                 break
-            if entry == len(Compressed_Final_List) - 1 and Toggle_Stuff['Frag_Base'] == False:
-                break
         if entry == len(Compressed_Final_List):
-            break
-        if entry == len(Compressed_Final_List) - 1 and Toggle_Stuff['Frag_Base'] == False:
             break
 
     # Save the final canvas image
