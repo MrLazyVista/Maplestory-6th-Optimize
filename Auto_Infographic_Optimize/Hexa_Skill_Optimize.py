@@ -18,7 +18,7 @@ import tkinter as tk
 # Energy based optimization Toggle_Stuff['Frag_Base'] = False
 # Optimize for rerolling Hexa Core = True
 Toggle_Stuff = {
-    'Frag_Base'         :Trues,
+    'Frag_Base'         :True,
     'Hexa_Stat_Include' :True,
     'Hexa_Maxed'        :False,
     'ForceMasteryA1234' :True,
